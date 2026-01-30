@@ -4,6 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Sistema de Processos Jurídicos</title>
+    
+    <!-- Suppress browser extension errors - must be first script -->
+    <script>
+        // Global error handler - catches all errors including from extensions
+        (function() {
+            var originalError = console.error;
+            console.error = function() {
+                var args = Array.prototype.slice.call(arguments);
+                var message = args.join(' ');
+                
+                // Filter out extension-related errors
+                if (message.indexOf('chrome-extension://') !== -1 ||
+                    message.indexOf('message channel closed') !== -1 ||
+                    message.indexOf('dynamically imported module') !== -1) {
+                    // Silently ignore these errors
+                    return;
+                }
+                
+                // Log other errors normally
+                originalError.apply(console, arguments);
+            };
+            
+            // Catch runtime errors
+            window.addEventListener('error', function(e) {
+                if (e.filename && e.filename.indexOf('chrome-extension://') === 0) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                }
+            }, true); // Use capture phase
+            
+            // Catch promise rejections
+            window.addEventListener('unhandledrejection', function(e) {
+                if (e.reason) {
+                    var message = e.reason.message || e.reason.toString();
+                    if (message.indexOf('chrome-extension://') !== -1 ||
+                        message.indexOf('message channel closed') !== -1 ||
+                        message.indexOf('dynamically imported module') !== -1) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        return false;
+                    }
+                }
+            }, true); // Use capture phase
+        })();
+    </script>
+    
     <style>
         * {
             margin: 0;
@@ -177,25 +226,6 @@
     </div>
 
     <script>
-        // Suppress browser extension errors
-        window.addEventListener('error', function(e) {
-            // Ignore errors from browser extensions
-            if (e.filename && e.filename.indexOf('chrome-extension://') === 0) {
-                e.preventDefault();
-                return true;
-            }
-        });
-        
-        window.addEventListener('unhandledrejection', function(e) {
-            // Ignore promise rejections from browser extensions
-            if (e.reason && e.reason.message && 
-                (e.reason.message.indexOf('chrome-extension://') !== -1 ||
-                 e.reason.message.indexOf('message channel closed') !== -1)) {
-                e.preventDefault();
-                return true;
-            }
-        });
-
         const loginForm = document.getElementById('loginForm');
         const alertContainer = document.getElementById('alertContainer');
         const btnLogin = document.getElementById('btnLogin');

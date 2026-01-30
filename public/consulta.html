@@ -4,6 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consulta Pública - Processos Jurídicos</title>
+    
+    <!-- Suppress browser extension errors - must be first script -->
+    <script>
+        (function() {
+            var originalError = console.error;
+            console.error = function() {
+                var args = Array.prototype.slice.call(arguments);
+                var message = args.join(' ');
+                if (message.indexOf('chrome-extension://') !== -1 ||
+                    message.indexOf('message channel closed') !== -1 ||
+                    message.indexOf('dynamically imported module') !== -1) {
+                    return;
+                }
+                originalError.apply(console, arguments);
+            };
+            
+            window.addEventListener('error', function(e) {
+                if (e.filename && e.filename.indexOf('chrome-extension://') === 0) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                }
+            }, true);
+            
+            window.addEventListener('unhandledrejection', function(e) {
+                if (e.reason) {
+                    var message = e.reason.message || e.reason.toString();
+                    if (message.indexOf('chrome-extension://') !== -1 ||
+                        message.indexOf('message channel closed') !== -1 ||
+                        message.indexOf('dynamically imported module') !== -1) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        return false;
+                    }
+                }
+            }, true);
+        })();
+    </script>
+    
     <link rel="stylesheet" href="/css/styles.css">
     <style>
         .consulta-container {
@@ -246,23 +287,6 @@
     </div>
 
     <script>
-        // Suppress browser extension errors
-        window.addEventListener('error', function(e) {
-            if (e.filename && e.filename.indexOf('chrome-extension://') === 0) {
-                e.preventDefault();
-                return true;
-            }
-        });
-        
-        window.addEventListener('unhandledrejection', function(e) {
-            if (e.reason && e.reason.message && 
-                (e.reason.message.indexOf('chrome-extension://') !== -1 ||
-                 e.reason.message.indexOf('message channel closed') !== -1)) {
-                e.preventDefault();
-                return true;
-            }
-        });
-
         const searchForm = document.getElementById('searchForm');
         const searchInput = document.getElementById('searchInput');
         const resultContainer = document.getElementById('resultContainer');
