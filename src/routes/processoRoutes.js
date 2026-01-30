@@ -21,7 +21,7 @@ router.get('/:id', validateId, handleValidationErrors, processoController.obterP
 // Create a new process
 router.post('/', validateCreateProcesso, handleValidationErrors, processoController.criarProcesso);
 
-// Update a process
+// Update a process (validateUpdateProcesso already includes ID validation)
 router.put('/:id', validateUpdateProcesso, handleValidationErrors, processoController.atualizarProcesso);
 
 // Delete a process

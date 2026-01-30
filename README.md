@@ -33,7 +33,7 @@ Sistema web completo para gerenciamento de processos jurídicos, desenvolvido co
 
 ### Pré-requisitos
 
-- Node.js 18+ e npm
+- Node.js 20+ e npm
 
 ### Passos de Instalação
 

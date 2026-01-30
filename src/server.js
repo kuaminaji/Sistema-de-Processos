@@ -23,8 +23,9 @@ app.use(helmet({
 }));
 
 // CORS configuration
+const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
 app.use(cors({
-    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : '*',
+    origin: allowedOrigins.length > 0 ? allowedOrigins : (process.env.NODE_ENV === 'development' ? '*' : false),
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -69,13 +70,25 @@ app.listen(PORT, () => {
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
     console.log('SIGTERM recebido. Encerrando servidor...');
+    try {
+        await db.close();
+        console.log('Conexão com banco de dados encerrada.');
+    } catch (err) {
+        console.error('Erro ao fechar banco de dados:', err);
+    }
     process.exit(0);
 });
 
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
     console.log('SIGINT recebido. Encerrando servidor...');
+    try {
+        await db.close();
+        console.log('Conexão com banco de dados encerrada.');
+    } catch (err) {
+        console.error('Erro ao fechar banco de dados:', err);
+    }
     process.exit(0);
 });
 

@@ -84,5 +84,3 @@ db.close((err) => {
         console.log('Banco de dados inicializado com sucesso!');
     }
 });
-
-module.exports = db;
