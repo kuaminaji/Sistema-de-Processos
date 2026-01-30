@@ -666,45 +666,45 @@
     <nav class="sidebar" id="sidebar">
         <ul class="sidebar-menu">
             <li class="menu-item">
-                <a class="menu-link active" onclick="showView('dashboard')">
+                <a href="javascript:void(0)" class="menu-link active" onclick="showView('dashboard')">
                     <span class="menu-icon">🏠</span>
                     <span>Dashboard</span>
                 </a>
             </li>
             <li class="menu-item">
-                <a class="menu-link" onclick="toggleSubmenu('processos-submenu')">
+                <a href="javascript:void(0)" class="menu-link" onclick="toggleSubmenu('processos-submenu')">
                     <span class="menu-icon">📁</span>
                     <span>Processos</span>
                 </a>
                 <ul class="submenu" id="processos-submenu">
-                    <li><a class="submenu-link" onclick="showView('processos-lista')">Lista</a></li>
-                    <li><a class="submenu-link" onclick="showView('processos-novo')">Novo Processo</a></li>
+                    <li><a href="javascript:void(0)" class="submenu-link" onclick="showView('processos-lista')">Lista</a></li>
+                    <li><a href="javascript:void(0)" class="submenu-link" onclick="showView('processos-novo')">Novo Processo</a></li>
                 </ul>
             </li>
             <li class="menu-item">
-                <a class="menu-link" onclick="toggleSubmenu('clientes-submenu')">
+                <a href="javascript:void(0)" class="menu-link" onclick="toggleSubmenu('clientes-submenu')">
                     <span class="menu-icon">👥</span>
                     <span>Clientes</span>
                 </a>
                 <ul class="submenu" id="clientes-submenu">
-                    <li><a class="submenu-link" onclick="showView('clientes-lista')">Lista</a></li>
-                    <li><a class="submenu-link" onclick="showView('clientes-novo')">Novo Cliente</a></li>
+                    <li><a href="javascript:void(0)" class="submenu-link" onclick="showView('clientes-lista')">Lista</a></li>
+                    <li><a href="javascript:void(0)" class="submenu-link" onclick="showView('clientes-novo')">Novo Cliente</a></li>
                 </ul>
             </li>
             <li class="menu-item" id="menu-usuarios">
-                <a class="menu-link" onclick="showView('usuarios')">
+                <a href="javascript:void(0)" class="menu-link" onclick="showView('usuarios')">
                     <span class="menu-icon">⚙️</span>
                     <span>Usuários</span>
                 </a>
             </li>
             <li class="menu-item">
-                <a class="menu-link" onclick="showView('configuracoes')">
+                <a href="javascript:void(0)" class="menu-link" onclick="showView('configuracoes')">
                     <span class="menu-icon">🔧</span>
                     <span>Configurações</span>
                 </a>
             </li>
             <li class="menu-item">
-                <a class="menu-link" onclick="handleLogout()">
+                <a href="javascript:void(0)" class="menu-link" onclick="handleLogout()">
                     <span class="menu-icon">🚪</span>
                     <span>Sair</span>
                 </a>
@@ -713,7 +713,7 @@
     </nav>
 
     <!-- Overlay for mobile -->
-    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+    <div class="overlay" id="overlay" onclick="if(document.getElementById('sidebar').classList.contains('active')) toggleSidebar()"></div>
 
     <!-- Main Content -->
     <main class="main-content">
