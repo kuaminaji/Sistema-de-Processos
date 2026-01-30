@@ -1192,7 +1192,8 @@
                 // Load processos
                 const processosResponse = await apiRequest('/api/processos');
                 if (processosResponse.ok) {
-                    processos = await processosResponse.json();
+                    const processosData = await processosResponse.json();
+                    processos = processosData.data || [];
                     updateDashboardStats();
                     displayRecentProcessos();
                 }
@@ -1200,7 +1201,8 @@
                 // Load clientes
                 const clientesResponse = await apiRequest('/api/clientes');
                 if (clientesResponse.ok) {
-                    clientes = await clientesResponse.json();
+                    const clientesData = await clientesResponse.json();
+                    clientes = clientesData.data || [];
                     updateDashboardStats();
                 }
 
@@ -1292,7 +1294,8 @@
                 const response = await apiRequest('/api/processos');
                 
                 if (response.ok) {
-                    processos = await response.json();
+                    const data = await response.json();
+                    processos = data.data || [];
                     displayProcessos();
                 }
                 
@@ -1339,7 +1342,8 @@
                 const response = await apiRequest('/api/clientes');
                 
                 if (response.ok) {
-                    clientes = await response.json();
+                    const data = await response.json();
+                    clientes = data.data || [];
                     displayClientes();
                     updateClienteSelect();
                 }
@@ -1401,7 +1405,8 @@
                 const response = await apiRequest('/api/usuarios');
                 
                 if (response.ok) {
-                    usuarios = await response.json();
+                    const data = await response.json();
+                    usuarios = data.data || [];
                     displayUsuarios();
                 }
                 

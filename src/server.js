@@ -26,6 +26,7 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'"],
             scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts for HTML pages
+            scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers (onclick, etc.)
             imgSrc: ["'self'", "data:", "https:"],
             connectSrc: ["'self'"], // Restrict fetch/XHR to same origin
             objectSrc: ["'none'"], // Block plugins
