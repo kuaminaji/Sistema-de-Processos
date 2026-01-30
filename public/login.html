@@ -177,6 +177,25 @@
     </div>
 
     <script>
+        // Suppress browser extension errors
+        window.addEventListener('error', function(e) {
+            // Ignore errors from browser extensions
+            if (e.filename && e.filename.indexOf('chrome-extension://') === 0) {
+                e.preventDefault();
+                return true;
+            }
+        });
+        
+        window.addEventListener('unhandledrejection', function(e) {
+            // Ignore promise rejections from browser extensions
+            if (e.reason && e.reason.message && 
+                (e.reason.message.indexOf('chrome-extension://') !== -1 ||
+                 e.reason.message.indexOf('message channel closed') !== -1)) {
+                e.preventDefault();
+                return true;
+            }
+        });
+
         const loginForm = document.getElementById('loginForm');
         const alertContainer = document.getElementById('alertContainer');
         const btnLogin = document.getElementById('btnLogin');

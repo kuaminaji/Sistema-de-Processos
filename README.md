@@ -87,6 +87,11 @@ echo "PORT=3001" > .env
 npm start
 ```
 
+**Erros de extensões do navegador no console**
+- Veja [BROWSER_COMPATIBILITY.md](BROWSER_COMPATIBILITY.md) para detalhes
+- Estes erros são inofensivos e não afetam a funcionalidade
+- Solução: Desabilite extensões de PDF ou use modo anônimo
+
 ## 📖 Documentação Completa
 
 Veja o arquivo [README-FULL.md](README-FULL.md) para documentação detalhada incluindo:
