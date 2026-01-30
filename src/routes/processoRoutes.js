@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const processoController = require('../controllers/processoController');
+const { requireAuth } = require('../middleware/auth');
 const {
     validateCreateProcesso,
     validateUpdateProcesso,
@@ -8,6 +9,9 @@ const {
     validateId,
     handleValidationErrors
 } = require('../middleware/validation');
+
+// All process routes require authentication
+router.use(requireAuth);
 
 // Get all processes
 router.get('/', processoController.listarProcessos);

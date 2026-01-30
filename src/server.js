@@ -1,10 +1,19 @@
 require('dotenv').config();
 const express = require('express');
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const db = require('./database/db');
+
+// Routes
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const clientRoutes = require('./routes/clientRoutes');
 const processoRoutes = require('./routes/processoRoutes');
+const publicRoutes = require('./routes/publicRoutes');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -27,7 +36,23 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS
 app.use(cors({
     origin: allowedOrigins.length > 0 ? allowedOrigins : (process.env.NODE_ENV === 'development' ? '*' : false),
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
+
+// Cookie parser
+app.use(cookieParser());
+
+// Session configuration
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'sistema-processos-secret-key-change-in-production',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
 }));
 
 // Rate limiting
@@ -49,11 +74,25 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/usuarios', userRoutes);
+app.use('/api/clientes', clientRoutes);
 app.use('/api/processos', processoRoutes);
+app.use('/api/public', publicRoutes);
 
 // Root route - serve the main HTML page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+// Login page
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/login.html'));
+});
+
+// Public consultation page
+app.get('/consulta', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/consulta.html'));
 });
 
 // 404 handler
