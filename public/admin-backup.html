@@ -698,12 +698,6 @@
                 </a>
             </li>
             <li class="menu-item">
-                <a href="javascript:void(0)" class="menu-link" onclick="showView('prazos')">
-                    <span class="menu-icon">⏰</span>
-                    <span>Prazos</span>
-                </a>
-            </li>
-            <li class="menu-item">
                 <a href="javascript:void(0)" class="menu-link" onclick="showView('configuracoes')">
                     <span class="menu-icon">🔧</span>
                     <span>Configurações</span>
@@ -765,25 +759,6 @@
                     </div>
                     <div class="stat-value" id="totalClientes">0</div>
                     <div class="stat-change">Cadastrados</div>
-                </div>
-            </div>
-
-            <!-- Prazos Urgentes Section -->
-            <div class="card" style="margin-bottom: 2rem; border-left: 4px solid var(--danger);">
-                <div class="card-header">
-                    <h2 class="card-title" style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="font-size: 1.5rem;">⏰</span>
-                        Prazos Urgentes
-                    </h2>
-                    <button class="btn btn-primary btn-sm" onclick="showView('prazos')">
-                        Ver Todos os Prazos
-                    </button>
-                </div>
-                <div id="prazosUrgentesContainer">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Carregando prazos...</p>
-                    </div>
                 </div>
             </div>
 
@@ -1058,28 +1033,6 @@
             </div>
         </section>
 
-        <!-- Prazos View -->
-        <section id="prazos" class="view-section">
-            <div class="page-header">
-                <h1 class="page-title">⏰ Gestão de Prazos</h1>
-                <p class="page-subtitle">Controle todos os prazos processuais</p>
-            </div>
-
-            <div class="card" style="margin-bottom: 2rem;">
-                <div class="card-header">
-                    <h2 class="card-title">Prazos Processuais</h2>
-                    <button class="btn btn-primary" onclick="showNovoPrazoForm()">
-                        + Novo Prazo
-                    </button>
-                </div>
-                <div class="loading" id="prazosLoading">
-                    <div class="spinner"></div>
-                    <p>Carregando prazos...</p>
-                </div>
-                <div id="prazosListContainer"></div>
-            </div>
-        </section>
-
         <!-- Configurações View -->
         <section id="configuracoes" class="view-section">
             <div class="page-header">
@@ -1253,62 +1206,11 @@
                     updateDashboardStats();
                 }
 
-                // Load prazos urgentes
-                await loadPrazosUrgentes();
-
                 document.getElementById('dashboardLoading').classList.remove('active');
             } catch (error) {
                 console.error('Error loading dashboard:', error);
                 document.getElementById('dashboardLoading').classList.remove('active');
             }
-        }
-
-        // Load prazos urgentes for dashboard
-        async function loadPrazosUrgentes() {
-            try {
-                const response = await apiRequest('/api/prazos/urgentes');
-                if (response.ok) {
-                    const data = await response.json();
-                    displayPrazosUrgentes(data.data || []);
-                }
-            } catch (error) {
-                console.error('Error loading prazos urgentes:', error);
-            }
-        }
-
-        // Display prazos urgentes on dashboard
-        function displayPrazosUrgentes(prazos) {
-            const container = document.getElementById('prazosUrgentesContainer');
-            
-            if (prazos.length === 0) {
-                container.innerHTML = '<div class="empty-state"><p style="color: var(--success);">✅ Nenhum prazo urgente no momento</p></div>';
-                return;
-            }
-
-            let html = '<div style="padding: 1rem; display: grid; gap: 1rem;">';
-            prazos.forEach(prazo => {
-                const diasRestantes = prazo.dias_restantes;
-                const corPrazo = diasRestantes <= 1 ? 'var(--danger)' : diasRestantes <= 3 ? 'var(--warning)' : 'var(--primary-color)';
-                const icone = diasRestantes <= 1 ? '🚨' : diasRestantes <= 3 ? '⚠️' : '⏰';
-                
-                html += `
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-left: 4px solid ${corPrazo}; background: #f8f9fa; border-radius: 8px;">
-                        <div style="flex: 1;">
-                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">${icone} ${prazo.descricao}</div>
-                            <div style="font-size: 0.875rem; color: var(--text-secondary);">
-                                Processo: ${prazo.numero_processo || 'N/A'} | Data Limite: ${new Date(prazo.data_limite).toLocaleDateString('pt-BR')}
-                            </div>
-                        </div>
-                        <div style="text-align: center; padding: 0 1.5rem;">
-                            <div style="font-size: 2rem; font-weight: bold; color: ${corPrazo};">${diasRestantes}</div>
-                            <div style="font-size: 0.75rem; color: var(--text-secondary);">${diasRestantes === 1 ? 'DIA' : 'DIAS'}</div>
-                        </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            
-            container.innerHTML = html;
         }
 
         // Update dashboard statistics
@@ -1619,123 +1521,12 @@
                 loadUsuarios();
             } else if (viewId === 'dashboard') {
                 loadDashboard();
-            } else if (viewId === 'prazos') {
-                loadPrazos();
             }
 
             // Close mobile menu
             if (window.innerWidth <= 768) {
                 toggleSidebar();
             }
-        }
-
-        // Load all prazos
-        async function loadPrazos() {
-            try {
-                document.getElementById('prazosLoading').classList.add('active');
-                const response = await apiRequest('/api/prazos');
-                if (response.ok) {
-                    const data = await response.json();
-                    displayPrazosList(data.data || []);
-                }
-                document.getElementById('prazosLoading').classList.remove('active');
-            } catch (error) {
-                console.error('Error loading prazos:', error);
-                document.getElementById('prazosLoading').classList.remove('active');
-            }
-        }
-
-        // Display prazos list
-        function displayPrazosList(prazos) {
-            const container = document.getElementById('prazosListContainer');
-            
-            if (prazos.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">⏰</div>
-                        <h3 class="empty-state-title">Nenhum prazo cadastrado</h3>
-                        <p>Comece adicionando prazos aos seus processos</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // Group prazos by status
-            const urgentes = prazos.filter(p => p.status_prazo === 'urgente');
-            const normais = prazos.filter(p => p.status_prazo === 'normal');
-            const vencidos = prazos.filter(p => p.status_prazo === 'vencido');
-            const concluidos = prazos.filter(p => p.status_prazo === 'concluido');
-
-            let html = '';
-
-            // Vencidos
-            if (vencidos.length > 0) {
-                html += '<div style="margin-bottom: 2rem;"><h3 style="color: var(--danger); margin-bottom: 1rem;">🚨 Prazos Vencidos</h3>';
-                vencidos.forEach(prazo => {
-                    html += renderPrazoCard(prazo, 'var(--danger)');
-                });
-                html += '</div>';
-            }
-
-            // Urgentes
-            if (urgentes.length > 0) {
-                html += '<div style="margin-bottom: 2rem;"><h3 style="color: var(--warning); margin-bottom: 1rem;">⚠️ Prazos Urgentes</h3>';
-                urgentes.forEach(prazo => {
-                    html += renderPrazoCard(prazo, 'var(--warning)');
-                });
-                html += '</div>';
-            }
-
-            // Normais
-            if (normais.length > 0) {
-                html += '<div style="margin-bottom: 2rem;"><h3 style="color: var(--primary-color); margin-bottom: 1rem;">⏰ Prazos Normais</h3>';
-                normais.forEach(prazo => {
-                    html += renderPrazoCard(prazo, 'var(--primary-color)');
-                });
-                html += '</div>';
-            }
-
-            // Concluídos (collapsed by default)
-            if (concluidos.length > 0) {
-                html += '<div style="margin-bottom: 2rem;"><h3 style="color: var(--success); margin-bottom: 1rem;">✅ Concluídos (${concluidos.length})</h3>';
-                html += '<div style="max-height: 300px; overflow-y: auto;">';
-                concluidos.forEach(prazo => {
-                    html += renderPrazoCard(prazo, 'var(--success)');
-                });
-                html += '</div></div>';
-            }
-
-            container.innerHTML = html;
-        }
-
-        // Render individual prazo card
-        function renderPrazoCard(prazo, cor) {
-            const diasInfo = prazo.concluido ? 
-                '<span style="color: var(--success); font-weight: 600;">✓ Concluído</span>' :
-                `<span style="font-size: 1.25rem; font-weight: bold; color: ${cor};">${Math.abs(prazo.dias_restantes)} ${prazo.dias_restantes < 0 ? 'dias atrás' : prazo.dias_restantes === 1 ? 'dia' : 'dias'}</span>`;
-            
-            return `
-                <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; margin-bottom: 0.5rem; border-left: 4px solid ${cor}; background: #f8f9fa; border-radius: 8px;">
-                    <div style="flex: 1;">
-                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">${prazo.descricao}</div>
-                        <div style="font-size: 0.875rem; color: var(--text-secondary);">
-                            <strong>Processo:</strong> ${prazo.numero_processo || 'N/A'} - ${prazo.processo_titulo || ''}
-                        </div>
-                        <div style="font-size: 0.875rem; color: var(--text-secondary);">
-                            <strong>Tipo:</strong> ${prazo.tipo} | <strong>Data Limite:</strong> ${new Date(prazo.data_limite).toLocaleDateString('pt-BR')}
-                        </div>
-                        ${prazo.observacoes ? `<div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;"><strong>Obs:</strong> ${prazo.observacoes}</div>` : ''}
-                    </div>
-                    <div style="text-align: center; padding: 0 1.5rem;">
-                        ${diasInfo}
-                    </div>
-                </div>
-            `;
-        }
-
-        // Show novo prazo form (placeholder)
-        function showNovoPrazoForm() {
-            alert('Formulário de novo prazo em desenvolvimento. Use a API para criar prazos.');
         }
 
         // Toggle submenu
