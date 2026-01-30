@@ -76,15 +76,19 @@ class ProcessoController {
                 comarca,
                 advogado_autor,
                 advogado_reu,
-                observacoes
+                observacoes,
+                prioridade,
+                instancia,
+                fase_processual
             } = req.body;
 
             const sql = `
                 INSERT INTO processos (
                     numero_processo, cliente_id, titulo, descricao, autor, reu, status,
                     tipo_acao, valor_causa, data_distribuicao, vara, comarca,
-                    advogado_autor, advogado_reu, observacoes, data_ultima_movimentacao
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                    advogado_autor, advogado_reu, observacoes, data_ultima_movimentacao,
+                    prioridade, instancia, fase_processual
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, ?, ?)
             `;
 
             const params = [
@@ -102,7 +106,10 @@ class ProcessoController {
                 comarca,
                 advogado_autor,
                 advogado_reu,
-                observacoes
+                observacoes,
+                prioridade || 'normal',
+                instancia || '1ª Instância',
+                fase_processual || 'Conhecimento'
             ];
 
             const result = await db.run(sql, params);

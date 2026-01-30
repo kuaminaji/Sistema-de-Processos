@@ -14,6 +14,7 @@ const userRoutes = require('./routes/userRoutes');
 const clientRoutes = require('./routes/clientRoutes');
 const processoRoutes = require('./routes/processoRoutes');
 const publicRoutes = require('./routes/publicRoutes');
+const prazoRoutes = require('./routes/prazoRoutes');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -84,6 +85,7 @@ app.use('/api/usuarios', userRoutes);
 app.use('/api/clientes', clientRoutes);
 app.use('/api/processos', processoRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/api', prazoRoutes);
 
 // Root route - serve the admin HTML page
 app.get('/', (req, res) => {

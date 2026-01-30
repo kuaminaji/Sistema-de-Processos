@@ -54,6 +54,8 @@ class Database {
                     console.error('Erro ao criar tabela processos:', err.message);
                 } else {
                     console.log('Tabela "processos" verificada/criada com sucesso.');
+                    // Add new columns for professional features (ALTER TABLE is idempotent)
+                    this.addProcessoColumns();
                 }
             });
 
@@ -123,12 +125,105 @@ class Database {
                 }
             });
 
+            // Tabela de prazos processuais
+            this.db.run(`
+                CREATE TABLE IF NOT EXISTS prazos (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    processo_id INTEGER NOT NULL,
+                    descricao VARCHAR(200) NOT NULL,
+                    tipo VARCHAR(50) NOT NULL,
+                    data_limite DATE NOT NULL,
+                    dias_antecedencia INTEGER DEFAULT 3,
+                    concluido BOOLEAN DEFAULT 0,
+                    observacoes TEXT,
+                    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    criado_por INTEGER,
+                    FOREIGN KEY (processo_id) REFERENCES processos(id) ON DELETE CASCADE,
+                    FOREIGN KEY (criado_por) REFERENCES usuarios(id)
+                )
+            `, (err) => {
+                if (err) {
+                    console.error('Erro ao criar tabela prazos:', err.message);
+                } else {
+                    console.log('Tabela "prazos" verificada/criada com sucesso.');
+                }
+            });
+
+            // Tabela de documentos
+            this.db.run(`
+                CREATE TABLE IF NOT EXISTS documentos (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    processo_id INTEGER NOT NULL,
+                    nome_arquivo VARCHAR(255) NOT NULL,
+                    tipo_documento VARCHAR(100),
+                    caminho_arquivo VARCHAR(500) NOT NULL,
+                    tamanho_bytes INTEGER,
+                    mime_type VARCHAR(100),
+                    descricao TEXT,
+                    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    criado_por INTEGER,
+                    FOREIGN KEY (processo_id) REFERENCES processos(id) ON DELETE CASCADE,
+                    FOREIGN KEY (criado_por) REFERENCES usuarios(id)
+                )
+            `, (err) => {
+                if (err) {
+                    console.error('Erro ao criar tabela documentos:', err.message);
+                } else {
+                    console.log('Tabela "documentos" verificada/criada com sucesso.');
+                }
+            });
+
+            // Tabela de auditoria/logs
+            this.db.run(`
+                CREATE TABLE IF NOT EXISTS auditoria (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    tabela VARCHAR(50) NOT NULL,
+                    registro_id INTEGER NOT NULL,
+                    acao VARCHAR(20) NOT NULL,
+                    dados_anteriores TEXT,
+                    dados_novos TEXT,
+                    usuario_id INTEGER,
+                    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+                )
+            `, (err) => {
+                if (err) {
+                    console.error('Erro ao criar tabela auditoria:', err.message);
+                } else {
+                    console.log('Tabela "auditoria" verificada/criada com sucesso.');
+                }
+            });
+
             // Create indexes for better performance
             this.db.run(`CREATE INDEX IF NOT EXISTS idx_processo_numero ON processos(numero_processo)`);
             this.db.run(`CREATE INDEX IF NOT EXISTS idx_processo_status ON processos(status)`);
             this.db.run(`CREATE INDEX IF NOT EXISTS idx_movimentacao_processo ON movimentacoes(processo_id)`);
             this.db.run(`CREATE INDEX IF NOT EXISTS idx_cliente_cpf ON clientes(cpf)`);
             this.db.run(`CREATE INDEX IF NOT EXISTS idx_usuario_email ON usuarios(email)`);
+            this.db.run(`CREATE INDEX IF NOT EXISTS idx_prazo_processo ON prazos(processo_id)`);
+            this.db.run(`CREATE INDEX IF NOT EXISTS idx_prazo_data ON prazos(data_limite)`);
+            this.db.run(`CREATE INDEX IF NOT EXISTS idx_documento_processo ON documentos(processo_id)`);
+            this.db.run(`CREATE INDEX IF NOT EXISTS idx_auditoria_tabela ON auditoria(tabela, registro_id)`);
+        });
+    }
+
+    // Add new columns to processos table (for backward compatibility)
+    addProcessoColumns() {
+        const newColumns = [
+            { name: 'prioridade', type: 'VARCHAR(20) DEFAULT "normal"', description: 'Prioridade do processo' },
+            { name: 'instancia', type: 'VARCHAR(50) DEFAULT "1ª Instância"', description: 'Instância processual' },
+            { name: 'fase_processual', type: 'VARCHAR(100) DEFAULT "Conhecimento"', description: 'Fase atual do processo' },
+            { name: 'proximo_prazo', type: 'DATE', description: 'Próximo prazo importante' },
+            { name: 'dias_ate_prazo', type: 'INTEGER', description: 'Dias até o próximo prazo' },
+            { name: 'tem_prazo_urgente', type: 'BOOLEAN DEFAULT 0', description: 'Flag de prazo urgente' }
+        ];
+
+        newColumns.forEach(column => {
+            this.db.run(`ALTER TABLE processos ADD COLUMN ${column.name} ${column.type}`, (err) => {
+                if (err && !err.message.includes('duplicate column name')) {
+                    console.error(`Erro ao adicionar coluna ${column.name}:`, err.message);
+                }
+            });
         });
     }
 
