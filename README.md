@@ -54,7 +54,7 @@ Desenvolvido com Node.js + SQLite, seguindo práticas modernas de desenvolviment
 git clone https://github.com/kuaminaji/Sistema-de-Processos.git
 cd Sistema-de-Processos
 
-# Instale as dependências
+# IMPORTANTE: Instale as dependências primeiro!
 npm install
 
 # Inicie o servidor
@@ -64,6 +64,28 @@ npm start
 ```
 
 **Credenciais padrão**: `admin@sistema.com` / `admin123`
+
+### ⚠️ Resolução de Problemas
+
+**Erro: "Cannot find module 'express-session'" ou similar**
+```bash
+# Solução: Instale as dependências
+npm install
+```
+
+**Erro ao iniciar o servidor**
+```bash
+# Limpe e reinstale as dependências
+rm -rf node_modules package-lock.json
+npm install
+```
+
+**Porta 3000 já em uso**
+```bash
+# Configure outra porta no arquivo .env
+echo "PORT=3001" > .env
+npm start
+```
 
 ## 📖 Documentação Completa
 
