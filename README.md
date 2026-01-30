@@ -55,22 +55,24 @@ cp .env.example .env
 
 Edite o arquivo `.env` conforme necessário.
 
-4. Inicialize o banco de dados:
-```bash
-npm run init-db
-```
-
-5. Inicie o servidor:
+4. Inicie o servidor:
 ```bash
 npm start
 ```
+
+O banco de dados será inicializado automaticamente na primeira execução.
 
 Para desenvolvimento com auto-reload:
 ```bash
 npm run dev
 ```
 
-6. Acesse a aplicação:
+Opcionalmente, você pode inicializar o banco de dados manualmente:
+```bash
+npm run init-db
+```
+
+5. Acesse a aplicação:
 ```
 http://localhost:3000
 ```
