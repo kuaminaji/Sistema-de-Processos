@@ -1120,24 +1120,22 @@
 
         // Authentication check
         async function checkAuth() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = '/login.html';
-                return;
-            }
-
             try {
                 const response = await fetch('/api/auth/me', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    credentials: 'include' // Use session-based auth
                 });
 
                 if (!response.ok) {
                     throw new Error('Authentication failed');
                 }
 
-                currentUser = await response.json();
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error('Authentication failed');
+                }
+
+                currentUser = data.user;
                 updateUserInfo();
                 
                 // Hide admin-only menu if not admin
@@ -1146,7 +1144,6 @@
                 }
             } catch (error) {
                 console.error('Auth error:', error);
-                localStorage.removeItem('token');
                 window.location.href = '/login.html';
             }
         }
@@ -1168,23 +1165,18 @@
 
         // API request helper
         async function apiRequest(url, options = {}) {
-            const token = localStorage.getItem('token');
             const headers = {
                 'Content-Type': 'application/json',
                 ...options.headers
             };
 
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-
             const response = await fetch(url, {
                 ...options,
-                headers
+                headers,
+                credentials: 'include' // Use session-based auth
             });
 
             if (response.status === 401) {
-                localStorage.removeItem('token');
                 window.location.href = '/login.html';
                 return;
             }
@@ -1644,9 +1636,16 @@
         }
 
         // Handle logout
-        function handleLogout() {
+        async function handleLogout() {
             if (confirm('Tem certeza que deseja sair?')) {
-                localStorage.removeItem('token');
+                try {
+                    await fetch('/api/auth/logout', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                } catch (error) {
+                    console.error('Erro ao fazer logout:', error);
+                }
                 window.location.href = '/login.html';
             }
         }
