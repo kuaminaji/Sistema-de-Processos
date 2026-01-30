@@ -25,7 +25,7 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'"],
-            scriptSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts for HTML pages
             imgSrc: ["'self'", "data:", "https:"]
         }
     }
@@ -80,9 +80,14 @@ app.use('/api/clientes', clientRoutes);
 app.use('/api/processos', processoRoutes);
 app.use('/api/public', publicRoutes);
 
-// Root route - serve the main HTML page
+// Root route - serve the admin HTML page
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
+    res.sendFile(path.join(__dirname, '../public/admin.html'));
+});
+
+// Admin page
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/admin.html'));
 });
 
 // Login page

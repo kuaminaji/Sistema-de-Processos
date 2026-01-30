@@ -63,6 +63,7 @@ class ProcessoController {
         try {
             const {
                 numero_processo,
+                cliente_id,
                 titulo,
                 descricao,
                 autor,
@@ -80,14 +81,15 @@ class ProcessoController {
 
             const sql = `
                 INSERT INTO processos (
-                    numero_processo, titulo, descricao, autor, reu, status,
+                    numero_processo, cliente_id, titulo, descricao, autor, reu, status,
                     tipo_acao, valor_causa, data_distribuicao, vara, comarca,
                     advogado_autor, advogado_reu, observacoes, data_ultima_movimentacao
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             `;
 
             const params = [
                 numero_processo,
+                cliente_id || null,
                 titulo,
                 descricao,
                 autor,
@@ -126,6 +128,7 @@ class ProcessoController {
             const { id } = req.params;
             const {
                 numero_processo,
+                cliente_id,
                 titulo,
                 descricao,
                 autor,
@@ -149,7 +152,7 @@ class ProcessoController {
 
             const sql = `
                 UPDATE processos SET
-                    numero_processo = ?, titulo = ?, descricao = ?, autor = ?, reu = ?,
+                    numero_processo = ?, cliente_id = ?, titulo = ?, descricao = ?, autor = ?, reu = ?,
                     status = ?, tipo_acao = ?, valor_causa = ?, data_distribuicao = ?,
                     vara = ?, comarca = ?, advogado_autor = ?, advogado_reu = ?,
                     observacoes = ?, atualizado_em = CURRENT_TIMESTAMP,
@@ -159,6 +162,7 @@ class ProcessoController {
 
             const params = [
                 numero_processo,
+                cliente_id || null,
                 titulo,
                 descricao,
                 autor,
