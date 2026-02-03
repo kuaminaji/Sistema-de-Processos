@@ -189,13 +189,150 @@
             text-decoration: underline;
         }
 
-        @media (max-width: 480px) {
+        /* Responsive Design - Mobile First */
+        
+        /* Extra Small Devices (Mobile Portrait < 375px) */
+        @media (max-width: 374px) {
+            body {
+                padding: 10px;
+            }
+
+            .login-container {
+                border-radius: 15px;
+            }
+
+            .login-header {
+                padding: 30px 20px;
+            }
+
             .login-header h1 {
-                font-size: 1.5em;
+                font-size: 1.4em;
+            }
+
+            .login-header p {
+                font-size: 0.85em;
+            }
+            
+            .login-form {
+                padding: 25px 20px;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+
+            .form-group input {
+                padding: 12px;
+                font-size: 16px; /* Previne zoom no iOS */
+            }
+
+            .btn-login {
+                padding: 14px;
+                font-size: 1em;
+                min-height: 48px; /* Touch target mínimo */
+            }
+
+            .public-link a {
+                display: inline-block;
+                padding: 10px;
+                min-height: 44px;
+                line-height: 24px;
+            }
+        }
+
+        /* Small Devices (Mobile 375px - 575px) */
+        @media (min-width: 375px) and (max-width: 575px) {
+            body {
+                padding: 15px;
+            }
+
+            .login-header h1 {
+                font-size: 1.6em;
             }
             
             .login-form {
                 padding: 30px 20px;
+            }
+
+            .form-group input {
+                font-size: 16px; /* Previne zoom no iOS */
+            }
+
+            .btn-login {
+                min-height: 48px;
+            }
+        }
+
+        /* Medium Devices (Tablets 576px - 767px) */
+        @media (min-width: 576px) and (max-width: 767px) {
+            .login-container {
+                max-width: 450px;
+            }
+
+            .login-header h1 {
+                font-size: 1.9em;
+            }
+
+            .login-form {
+                padding: 35px 30px;
+            }
+        }
+
+        /* Landscape Mobile (Height < 500px) */
+        @media (max-height: 500px) and (orientation: landscape) {
+            body {
+                padding: 10px;
+                align-items: flex-start;
+                padding-top: 20px;
+            }
+
+            .login-container {
+                margin: 0 auto;
+            }
+
+            .login-header {
+                padding: 20px;
+            }
+
+            .login-header h1 {
+                font-size: 1.3em;
+                margin-bottom: 5px;
+            }
+
+            .login-header p {
+                font-size: 0.8em;
+            }
+
+            .login-form {
+                padding: 20px;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+            .btn-login {
+                padding: 10px;
+            }
+
+            .public-link {
+                margin-top: 15px;
+                padding-top: 15px;
+            }
+        }
+
+        /* Large Devices (Desktop > 992px) */
+        @media (min-width: 992px) {
+            .login-container {
+                max-width: 420px;
+            }
+
+            .login-header {
+                padding: 45px 35px;
+            }
+
+            .login-form {
+                padding: 45px 35px;
             }
         }
     </style>

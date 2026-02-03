@@ -241,9 +241,87 @@
             font-weight: 500;
         }
 
-        @media (max-width: 768px) {
+        /* Responsive Design - Mobile First */
+        
+        /* Extra Small Devices (Mobile Portrait < 375px) */
+        @media (max-width: 374px) {
+            .consulta-container {
+                padding: 20px 10px;
+            }
+
+            .consulta-header {
+                margin-bottom: 25px;
+            }
+
             .consulta-header h1 {
-                font-size: 2em;
+                font-size: 1.6em;
+            }
+
+            .consulta-header p {
+                font-size: 0.9em;
+            }
+
+            .search-box {
+                padding: 20px 15px;
+            }
+
+            .search-form {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .search-input {
+                min-width: 100%;
+                padding: 12px 15px;
+                font-size: 16px; /* Previne zoom no iOS */
+            }
+
+            .btn-search {
+                padding: 14px 30px;
+                font-size: 1em;
+                width: 100%;
+                min-height: 48px;
+            }
+
+            .process-result {
+                padding: 20px 15px;
+            }
+
+            .process-header-result {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .process-number-result {
+                font-size: 1.1em;
+                word-break: break-all;
+            }
+
+            .process-info-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .movimentacao-header {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .back-link a {
+                display: inline-block;
+                padding: 10px;
+                min-height: 44px;
+            }
+        }
+
+        /* Small Devices (Mobile 375px - 575px) */
+        @media (min-width: 375px) and (max-width: 575px) {
+            .consulta-container {
+                padding: 30px 15px;
+            }
+
+            .consulta-header h1 {
+                font-size: 1.8em;
             }
 
             .search-form {
@@ -252,6 +330,105 @@
 
             .search-input {
                 min-width: 100%;
+                font-size: 16px;
+            }
+
+            .btn-search {
+                width: 100%;
+                min-height: 48px;
+            }
+
+            .process-header-result {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .process-info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Medium Devices (Tablets Portrait 576px - 767px) */
+        @media (min-width: 576px) and (max-width: 767px) {
+            .consulta-header h1 {
+                font-size: 2.2em;
+            }
+
+            .search-form {
+                flex-direction: row;
+            }
+
+            .search-input {
+                min-width: 60%;
+            }
+
+            .btn-search {
+                flex: 1;
+            }
+
+            .process-info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Tablets (768px - 991px) */
+        @media (min-width: 768px) and (max-width: 991px) {
+            .consulta-header h1 {
+                font-size: 2.3em;
+            }
+
+            .process-info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Landscape Mobile (Height < 500px) */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .consulta-container {
+                padding: 20px;
+            }
+
+            .consulta-header {
+                margin-bottom: 20px;
+            }
+
+            .consulta-header h1 {
+                font-size: 1.5em;
+                margin-bottom: 5px;
+            }
+
+            .consulta-header p {
+                font-size: 0.9em;
+            }
+
+            .search-box {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .process-result {
+                padding: 20px;
+                margin-bottom: 15px;
+            }
+
+            .movimentacoes-section {
+                margin-top: 15px;
+            }
+        }
+
+        /* Large Devices (Desktop > 992px) */
+        @media (min-width: 992px) {
+            .consulta-container {
+                padding: 50px 30px;
+            }
+
+            .consulta-header h1 {
+                font-size: 2.8em;
+            }
+
+            .search-box {
+                padding: 35px;
             }
         }
     </style>
