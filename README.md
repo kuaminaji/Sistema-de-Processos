@@ -36,6 +36,16 @@ Desenvolvido com Node.js + SQLite, seguindo práticas modernas de desenvolviment
 - **Rate Limiting**: Proteção contra ataques
 - **CSP e CORS**: Headers de segurança configurados
 
+### 📱 Design 100% Responsivo
+- **Mobile-First**: Otimizado para smartphones (320px+)
+- **Tablet-Friendly**: Interface adaptada para tablets (768px+)
+- **Desktop**: Layout completo para telas grandes (1200px+)
+- **Touch-Optimized**: Botões ≥ 44px para facilitar toque
+- **Landscape Support**: Funciona em modo paisagem
+- **9 Breakpoints**: Cobertura completa de todos os dispositivos
+- **Print-Ready**: Estilos otimizados para impressão
+- [📘 Documentação Completa](RESPONSIVE_DESIGN.md)
+
 ## 🎨 Screenshots
 
 ### Login
