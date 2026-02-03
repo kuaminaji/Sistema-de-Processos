@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema de Processos Jurídicos</title>
+    
+    <!-- Suppress browser extension errors - must be first script -->
+    <script>
+        // Global error handler - catches all errors including from extensions
+        (function() {
+            var originalError = console.error;
+            console.error = function() {
+                var args = Array.prototype.slice.call(arguments);
+                var message = args.join(' ');
+                
+                // Filter out extension-related errors
+                if (message.indexOf('chrome-extension://') !== -1 ||
+                    message.indexOf('message channel closed') !== -1 ||
+                    message.indexOf('dynamically imported module') !== -1) {
+                    // Silently ignore these errors
+                    return;
+                }
+                
+                // Log other errors normally
+                originalError.apply(console, arguments);
+            };
+            
+            // Catch runtime errors
+            window.addEventListener('error', function(e) {
+                if (e.filename && e.filename.indexOf('chrome-extension://') === 0) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                }
+            }, true); // Use capture phase
+            
+            // Catch promise rejections
+            window.addEventListener('unhandledrejection', function(e) {
+                if (e.reason) {
+                    var message = e.reason.message || e.reason.toString();
+                    if (message.indexOf('chrome-extension://') !== -1 ||
+                        message.indexOf('message channel closed') !== -1 ||
+                        message.indexOf('dynamically imported module') !== -1) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        return false;
+                    }
+                }
+            }, true); // Use capture phase
+        })();
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .login-header h1 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            opacity: 0.9;
+            font-size: 0.95em;
+        }
+
+        .login-form {
+            padding: 40px 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .alert-error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert-success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+
+        .public-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .public-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .public-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive Design - Mobile First */
+        
+        /* Extra Small Devices (Mobile Portrait < 375px) */
+        @media (max-width: 374px) {
+            body {
+                padding: 10px;
+            }
+
+            .login-container {
+                border-radius: 15px;
+            }
+
+            .login-header {
+                padding: 30px 20px;
+            }
+
+            .login-header h1 {
+                font-size: 1.4em;
+            }
+
+            .login-header p {
+                font-size: 0.85em;
+            }
+            
+            .login-form {
+                padding: 25px 20px;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+
+            .form-group input {
+                padding: 12px;
+                font-size: 16px; /* Previne zoom no iOS */
+            }
+
+            .btn-login {
+                padding: 14px;
+                font-size: 1em;
+                min-height: 48px; /* Touch target mínimo */
+            }
+
+            .public-link a {
+                display: inline-block;
+                padding: 10px;
+                min-height: 44px;
+                line-height: 24px;
+            }
+        }
+
+        /* Small Devices (Mobile 375px - 575px) */
+        @media (min-width: 375px) and (max-width: 575px) {
+            body {
+                padding: 15px;
+            }
+
+            .login-header h1 {
+                font-size: 1.6em;
+            }
+            
+            .login-form {
+                padding: 30px 20px;
+            }
+
+            .form-group input {
+                font-size: 16px; /* Previne zoom no iOS */
+            }
+
+            .btn-login {
+                min-height: 48px;
+            }
+        }
+
+        /* Medium Devices (Tablets 576px - 767px) */
+        @media (min-width: 576px) and (max-width: 767px) {
+            .login-container {
+                max-width: 450px;
+            }
+
+            .login-header h1 {
+                font-size: 1.9em;
+            }
+
+            .login-form {
+                padding: 35px 30px;
+            }
+        }
+
+        /* Landscape Mobile (Height < 500px) */
+        @media (max-height: 500px) and (orientation: landscape) {
+            body {
+                padding: 10px;
+                align-items: flex-start;
+                padding-top: 20px;
+            }
+
+            .login-container {
+                margin: 0 auto;
+            }
+
+            .login-header {
+                padding: 20px;
+            }
+
+            .login-header h1 {
+                font-size: 1.3em;
+                margin-bottom: 5px;
+            }
+
+            .login-header p {
+                font-size: 0.8em;
+            }
+
+            .login-form {
+                padding: 20px;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+            .btn-login {
+                padding: 10px;
+            }
+
+            .public-link {
+                margin-top: 15px;
+                padding-top: 15px;
+            }
+        }
+
+        /* Large Devices (Desktop > 992px) */
+        @media (min-width: 992px) {
+            .login-container {
+                max-width: 420px;
+            }
+
+            .login-header {
+                padding: 45px 35px;
+            }
+
+            .login-form {
+                padding: 45px 35px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>Sistema de Processos</h1>
+            <p>Gerenciamento Jurídico</p>
+        </div>
+        <div class="login-form">
+            <div id="alertContainer"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" name="senha" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn-login" id="btnLogin">Entrar</button>
+            </form>
+            <div class="public-link">
+                <a href="/consulta">🔍 Consultar Processo (Área Pública)</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const alertContainer = document.getElementById('alertContainer');
+        const btnLogin = document.getElementById('btnLogin');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+
+            btnLogin.disabled = true;
+            btnLogin.textContent = 'Entrando...';
+            alertContainer.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, senha }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showAlert('Login realizado com sucesso! Redirecionando...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1000);
+                } else {
+                    showAlert(data.error || 'Erro ao fazer login', 'error');
+                    btnLogin.disabled = false;
+                    btnLogin.textContent = 'Entrar';
+                }
+            } catch (error) {
+                console.error('Erro:', error);
+                showAlert('Erro ao conectar com o servidor', 'error');
+                btnLogin.disabled = false;
+                btnLogin.textContent = 'Entrar';
+            }
+        });
+
+        function showAlert(message, type) {
+            alertContainer.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        }
+
+        // Check if already logged in
+        fetch('/api/auth/me', { credentials: 'include' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/';
+                }
+            })
+            .catch(() => {});
+    </script>
+</body>
+</html>

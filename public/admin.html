@@ -1,0 +1,2478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Sistema de Processos Jurídicos</title>
+    
+    <!-- Suppress browser extension errors - must be first script -->
+    <script>
+        (function() {
+            var originalError = console.error;
+            console.error = function() {
+                var args = Array.prototype.slice.call(arguments);
+                var message = args.join(' ');
+                if (message.indexOf('chrome-extension://') !== -1 ||
+                    message.indexOf('message channel closed') !== -1 ||
+                    message.indexOf('dynamically imported module') !== -1) {
+                    return;
+                }
+                originalError.apply(console, arguments);
+            };
+            
+            window.addEventListener('error', function(e) {
+                if (e.filename && e.filename.indexOf('chrome-extension://') === 0) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    return false;
+                }
+            }, true);
+            
+            window.addEventListener('unhandledrejection', function(e) {
+                if (e.reason) {
+                    var message = e.reason.message || e.reason.toString();
+                    if (message.indexOf('chrome-extension://') !== -1 ||
+                        message.indexOf('message channel closed') !== -1 ||
+                        message.indexOf('dynamically imported module') !== -1) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        return false;
+                    }
+                }
+            }, true);
+        })();
+    </script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --border-color: #e2e8f0;
+            --success: #48bb78;
+            --warning: #ed8936;
+            --danger: #f56565;
+            --sidebar-width: 260px;
+            --topbar-height: 70px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 20px rgba(0,0,0,0.15);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* Top Bar */
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--topbar-height);
+            background: var(--card-bg);
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 1000;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        .topbar-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .user-role {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: var(--topbar-height);
+            left: 0;
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--topbar-height));
+            background: var(--card-bg);
+            box-shadow: var(--shadow-md);
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 999;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 1rem 0;
+        }
+
+        .menu-item {
+            margin: 0.25rem 0;
+        }
+
+        .menu-link {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .menu-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-color);
+        }
+
+        .menu-link.active {
+            background: var(--primary-gradient);
+            color: white;
+            border-right: 4px solid var(--secondary-color);
+        }
+
+        .menu-icon {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .submenu {
+            list-style: none;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        .submenu.active {
+            max-height: 200px;
+        }
+
+        .submenu-link {
+            display: block;
+            padding: 0.75rem 1.5rem 0.75rem 4rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .submenu-link:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-color);
+        }
+
+        .submenu-link.active {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--topbar-height);
+            padding: 2rem;
+            min-height: calc(100vh - var(--topbar-height));
+            transition: margin-left 0.3s ease;
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-title {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            opacity: 0.6;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.875rem;
+            color: var(--success);
+        }
+
+        /* Cards and Lists */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Table */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--bg-color);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        tbody tr {
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: var(--bg-color);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 0.875rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* Status Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.375rem 0.875rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: rgba(72, 187, 120, 0.1);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(237, 137, 54, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: rgba(245, 101, 101, 0.1);
+            color: var(--danger);
+        }
+
+        .badge-info {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-color);
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid rgba(102, 126, 234, 0.1);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* Responsive Utilities */
+        .mobile-hidden {
+            display: initial;
+        }
+
+        .mobile-only {
+            display: none;
+        }
+
+        .desktop-hidden {
+            display: none;
+        }
+
+        /* Button Groups for Mobile */
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-group-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        /* Touch-friendly spacing */
+        .touch-target {
+            min-height: 44px;
+            min-width: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Responsive text */
+        .text-responsive {
+            font-size: clamp(0.875rem, 2vw, 1rem);
+        }
+
+        /* Mobile Responsive */
+        /* Responsive Design - Mobile First */
+        
+        /* Extra Small Devices (Mobile Portrait < 375px) */
+        @media (max-width: 374px) {
+            :root {
+                --topbar-height: 60px;
+                --sidebar-width: 100%;
+            }
+
+            .menu-toggle {
+                display: block;
+                font-size: 1.3rem;
+                padding: 8px;
+                min-width: 44px;
+                min-height: 44px;
+            }
+
+            .topbar {
+                padding: 0 0.75rem;
+                height: 60px;
+            }
+
+            .topbar-title {
+                font-size: 0.95rem;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .user-avatar {
+                width: 36px;
+                height: 36px;
+                font-size: 0.9rem;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                width: 85%;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem 0.75rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .page-subtitle {
+                font-size: 0.9rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .stat-card {
+                padding: 1.25rem;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-input,
+            .form-select,
+            .form-textarea {
+                font-size: 16px; /* Previne zoom no iOS */
+                padding: 12px;
+            }
+
+            .btn {
+                padding: 12px 20px;
+                font-size: 0.95rem;
+                min-height: 48px;
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .btn-sm {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+                min-height: 40px;
+                width: auto;
+                margin-bottom: 0;
+            }
+
+            .card {
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                min-width: 600px;
+                font-size: 0.85rem;
+            }
+
+            th, td {
+                padding: 0.75rem 0.5rem;
+            }
+
+            .menu-link {
+                padding: 0.875rem 1rem;
+                font-size: 0.95rem;
+            }
+
+            .menu-icon {
+                font-size: 1.1rem;
+            }
+
+            .submenu-link {
+                padding: 0.75rem 1rem 0.75rem 3rem;
+                font-size: 0.85rem;
+            }
+
+            /* Utility Classes */
+            .mobile-hidden {
+                display: none !important;
+            }
+
+            .mobile-only {
+                display: initial !important;
+            }
+
+            .desktop-hidden {
+                display: initial !important;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* Small Devices (Mobile 375px - 575px) */
+        @media (min-width: 375px) and (max-width: 575px) {
+            .menu-toggle {
+                display: block;
+                padding: 10px;
+                min-width: 44px;
+                min-height: 44px;
+            }
+
+            .topbar {
+                padding: 0 1rem;
+            }
+
+            .topbar-title {
+                font-size: 1.1rem;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                width: 80%;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1.25rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-input,
+            .form-select,
+            .form-textarea {
+                font-size: 16px;
+            }
+
+            .btn {
+                min-height: 48px;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 650px;
+            }
+        }
+
+        /* Medium Devices (Tablets Portrait 576px - 767px) */
+        @media (min-width: 576px) and (max-width: 767px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+                width: 70%;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+
+            .user-info {
+                display: none;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .btn {
+                width: auto;
+            }
+        }
+
+        /* Tablets (768px - 991px) */
+        @media (min-width: 768px) and (max-width: 991px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+
+            .topbar {
+                padding: 0 1.5rem;
+            }
+
+            .user-info {
+                display: block;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 700px;
+            }
+        }
+
+        /* Large Tablets / Small Desktop (992px - 1199px) */
+        @media (min-width: 992px) and (max-width: 1199px) {
+            :root {
+                --sidebar-width: 240px;
+            }
+
+            .menu-toggle {
+                display: none;
+            }
+
+            .sidebar {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: var(--sidebar-width);
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Landscape Mobile (Height < 500px) */
+        @media (max-height: 500px) and (orientation: landscape) {
+            :root {
+                --topbar-height: 55px;
+            }
+
+            .topbar {
+                height: 55px;
+                padding: 0 1rem;
+            }
+
+            .topbar-title {
+                font-size: 1rem;
+            }
+
+            .user-avatar {
+                width: 38px;
+                height: 38px;
+            }
+
+            .sidebar {
+                width: 60%;
+                max-width: 300px;
+            }
+
+            .menu-link {
+                padding: 0.65rem 1.25rem;
+            }
+
+            .submenu-link {
+                padding: 0.5rem 1.25rem 0.5rem 3.5rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .page-header {
+                margin-bottom: 1rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .stats-grid {
+                gap: 1rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 1rem;
+            }
+        }
+
+        /* Extra Large Devices (Desktop > 1200px) */
+        @media (min-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .form-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* High Resolution Displays */
+        @media (min-width: 1600px) {
+            .consulta-container {
+                max-width: 1400px;
+            }
+
+            .main-content {
+                max-width: 1600px;
+            }
+        }
+
+        /* Overlay for mobile menu */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: var(--topbar-height);
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        /* Print Styles */
+        @media print {
+            .topbar,
+            .sidebar,
+            .menu-toggle,
+            .overlay {
+                display: none !important;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+            }
+
+            .btn,
+            .card-header button {
+                display: none !important;
+            }
+
+            .card {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+            <div class="topbar-title">Sistema de Processos Jurídicos</div>
+        </div>
+        <div class="topbar-right">
+            <div class="user-info">
+                <div class="user-name" id="userName">Carregando...</div>
+                <div class="user-role" id="userRole">...</div>
+            </div>
+            <div class="user-avatar" id="userAvatar">U</div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <ul class="sidebar-menu">
+            <li class="menu-item">
+                <a href="javascript:void(0)" class="menu-link active" onclick="showView('dashboard')">
+                    <span class="menu-icon">🏠</span>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="javascript:void(0)" class="menu-link" onclick="toggleSubmenu('processos-submenu')">
+                    <span class="menu-icon">📁</span>
+                    <span>Processos</span>
+                </a>
+                <ul class="submenu" id="processos-submenu">
+                    <li><a href="javascript:void(0)" class="submenu-link" onclick="showView('processos-lista')">Lista</a></li>
+                    <li><a href="javascript:void(0)" class="submenu-link" onclick="showView('processos-novo')">Novo Processo</a></li>
+                </ul>
+            </li>
+            <li class="menu-item">
+                <a href="javascript:void(0)" class="menu-link" onclick="toggleSubmenu('clientes-submenu')">
+                    <span class="menu-icon">👥</span>
+                    <span>Clientes</span>
+                </a>
+                <ul class="submenu" id="clientes-submenu">
+                    <li><a href="javascript:void(0)" class="submenu-link" onclick="showView('clientes-lista')">Lista</a></li>
+                    <li><a href="javascript:void(0)" class="submenu-link" onclick="showView('clientes-novo')">Novo Cliente</a></li>
+                </ul>
+            </li>
+            <li class="menu-item" id="menu-usuarios">
+                <a href="javascript:void(0)" class="menu-link" onclick="showView('usuarios')">
+                    <span class="menu-icon">⚙️</span>
+                    <span>Usuários</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="javascript:void(0)" class="menu-link" onclick="toggleSubmenu('prazos-submenu')">
+                    <span class="menu-icon">⏰</span>
+                    <span>Prazos</span>
+                </a>
+                <ul class="submenu" id="prazos-submenu">
+                    <li><a href="javascript:void(0)" class="submenu-link" onclick="showView('prazos')">Lista</a></li>
+                    <li><a href="javascript:void(0)" class="submenu-link" onclick="showView('prazos-novo')">Novo Prazo</a></li>
+                </ul>
+            </li>
+            <li class="menu-item">
+                <a href="javascript:void(0)" class="menu-link" onclick="showView('configuracoes')">
+                    <span class="menu-icon">🔧</span>
+                    <span>Configurações</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="javascript:void(0)" class="menu-link" onclick="handleLogout()">
+                    <span class="menu-icon">🚪</span>
+                    <span>Sair</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Overlay for mobile -->
+    <div class="overlay" id="overlay" onclick="if(document.getElementById('sidebar').classList.contains('active')) toggleSidebar()"></div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard View -->
+        <section id="dashboard" class="view-section active">
+            <div class="page-header">
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">Visão geral do sistema</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Processos</span>
+                        <span class="stat-icon">📊</span>
+                    </div>
+                    <div class="stat-value" id="totalProcessos">0</div>
+                    <div class="stat-change">Atualizado agora</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Em Andamento</span>
+                        <span class="stat-icon">⏳</span>
+                    </div>
+                    <div class="stat-value" id="processosAndamento">0</div>
+                    <div class="stat-change">Processos ativos</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Finalizados</span>
+                        <span class="stat-icon">✅</span>
+                    </div>
+                    <div class="stat-value" id="processosFinalizados">0</div>
+                    <div class="stat-change">Concluídos</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-title">Total Clientes</span>
+                        <span class="stat-icon">👤</span>
+                    </div>
+                    <div class="stat-value" id="totalClientes">0</div>
+                    <div class="stat-change">Cadastrados</div>
+                </div>
+            </div>
+
+            <!-- Prazos Urgentes Section -->
+            <div class="card" style="margin-bottom: 2rem; border-left: 4px solid var(--danger);">
+                <div class="card-header">
+                    <h2 class="card-title" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 1.5rem;">⏰</span>
+                        Prazos Urgentes
+                    </h2>
+                    <button class="btn btn-primary btn-sm" onclick="showView('prazos')">
+                        Ver Todos os Prazos
+                    </button>
+                </div>
+                <div id="prazosUrgentesContainer">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Carregando prazos...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Processos Recentes</h2>
+                    <button class="btn btn-primary btn-sm" onclick="showView('processos-novo')">
+                        + Novo Processo
+                    </button>
+                </div>
+                <div class="loading" id="dashboardLoading">
+                    <div class="spinner"></div>
+                    <p>Carregando dados...</p>
+                </div>
+                <div id="recentProcessosContainer"></div>
+            </div>
+        </section>
+
+        <!-- Processos Lista View -->
+        <section id="processos-lista" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">Lista de Processos</h1>
+                <p class="page-subtitle">Gerencie todos os processos</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Processos</h2>
+                    <button class="btn btn-primary" onclick="showView('processos-novo')">
+                        + Novo Processo
+                    </button>
+                </div>
+                <div class="loading" id="processosLoading">
+                    <div class="spinner"></div>
+                    <p>Carregando processos...</p>
+                </div>
+                <div class="table-responsive">
+                    <table id="processosTable">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Cliente</th>
+                                <th>Tipo</th>
+                                <th>Status</th>
+                                <th>Data</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="processosTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div id="processosEmpty" class="empty-state" style="display: none;">
+                    <div class="empty-state-icon">📁</div>
+                    <h3 class="empty-state-title">Nenhum processo encontrado</h3>
+                    <p>Comece criando seu primeiro processo</p>
+                    <button class="btn btn-primary" onclick="showView('processos-novo')" style="margin-top: 1rem;">
+                        + Criar Processo
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Novo Processo View -->
+        <section id="processos-novo" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">Novo Processo</h1>
+                <p class="page-subtitle">Cadastre um novo processo</p>
+            </div>
+
+            <div class="card">
+                <form id="novoProcessoForm" onsubmit="handleNovoProcesso(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Número do Processo *</label>
+                            <input type="text" class="form-input" name="numeroProcesso" required 
+                                   placeholder="0000000-00.0000.0.00.0000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Cliente *</label>
+                            <select class="form-select" name="cliente" id="clienteSelect" required>
+                                <option value="">Selecione um cliente</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tipo de Processo *</label>
+                            <select class="form-select" name="tipo" required>
+                                <option value="">Selecione o tipo</option>
+                                <option value="Cível">Cível</option>
+                                <option value="Trabalhista">Trabalhista</option>
+                                <option value="Criminal">Criminal</option>
+                                <option value="Tributário">Tributário</option>
+                                <option value="Família">Família</option>
+                                <option value="Consumidor">Consumidor</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status *</label>
+                            <select class="form-select" name="status" required>
+                                <option value="Em Andamento">Em Andamento</option>
+                                <option value="Aguardando">Aguardando</option>
+                                <option value="Finalizado">Finalizado</option>
+                                <option value="Arquivado">Arquivado</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Valor da Causa</label>
+                            <input type="number" class="form-input" name="valor" step="0.01" 
+                                   placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Data de Abertura *</label>
+                            <input type="date" class="form-input" name="dataAbertura" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descrição</label>
+                        <textarea class="form-textarea" name="descricao" 
+                                  placeholder="Descreva os detalhes do processo..."></textarea>
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary">Salvar Processo</button>
+                        <button type="button" class="btn btn-secondary" onclick="showView('processos-lista')">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Clientes Lista View -->
+        <section id="clientes-lista" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">Lista de Clientes</h1>
+                <p class="page-subtitle">Gerencie todos os clientes</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Clientes</h2>
+                    <button class="btn btn-primary" onclick="showView('clientes-novo')">
+                        + Novo Cliente
+                    </button>
+                </div>
+                <div class="loading" id="clientesLoading">
+                    <div class="spinner"></div>
+                    <p>Carregando clientes...</p>
+                </div>
+                <div class="table-responsive">
+                    <table id="clientesTable">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>CPF/CNPJ</th>
+                                <th>Email</th>
+                                <th>Telefone</th>
+                                <th>Processos</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientesTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div id="clientesEmpty" class="empty-state" style="display: none;">
+                    <div class="empty-state-icon">👥</div>
+                    <h3 class="empty-state-title">Nenhum cliente encontrado</h3>
+                    <p>Comece cadastrando seu primeiro cliente</p>
+                    <button class="btn btn-primary" onclick="showView('clientes-novo')" style="margin-top: 1rem;">
+                        + Cadastrar Cliente
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Novo Cliente View -->
+        <section id="clientes-novo" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">Novo Cliente</h1>
+                <p class="page-subtitle">Cadastre um novo cliente</p>
+            </div>
+
+            <div class="card">
+                <form id="novoClienteForm" onsubmit="handleNovoCliente(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Nome Completo *</label>
+                            <input type="text" class="form-input" name="nome" required 
+                                   placeholder="Nome completo do cliente">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">CPF/CNPJ *</label>
+                            <input type="text" class="form-input" name="cpfCnpj" required 
+                                   placeholder="000.000.000-00">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email *</label>
+                            <input type="email" class="form-input" name="email" required 
+                                   placeholder="cliente@email.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Telefone *</label>
+                            <input type="tel" class="form-input" name="telefone" required 
+                                   placeholder="(00) 00000-0000">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Data de Nascimento</label>
+                            <input type="date" class="form-input" name="dataNascimento">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tipo *</label>
+                            <select class="form-select" name="tipo" required>
+                                <option value="Pessoa Física">Pessoa Física</option>
+                                <option value="Pessoa Jurídica">Pessoa Jurídica</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Endereço</label>
+                        <input type="text" class="form-input" name="endereco" 
+                               placeholder="Endereço completo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Observações</label>
+                        <textarea class="form-textarea" name="observacoes" 
+                                  placeholder="Informações adicionais sobre o cliente..."></textarea>
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary">Salvar Cliente</button>
+                        <button type="button" class="btn btn-secondary" onclick="showView('clientes-lista')">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Usuários View -->
+        <section id="usuarios" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">Gerenciamento de Usuários</h1>
+                <p class="page-subtitle">Gerencie usuários do sistema</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Usuários do Sistema</h2>
+                    <button class="btn btn-primary" onclick="showNovoUsuarioModal()">
+                        + Novo Usuário
+                    </button>
+                </div>
+                <div class="loading" id="usuariosLoading">
+                    <div class="spinner"></div>
+                    <p>Carregando usuários...</p>
+                </div>
+                <div class="table-responsive">
+                    <table id="usuariosTable">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Email</th>
+                                <th>Perfil</th>
+                                <th>Status</th>
+                                <th>Último Acesso</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usuariosTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prazos View -->
+        <section id="prazos" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">⏰ Gestão de Prazos</h1>
+                <p class="page-subtitle">Controle todos os prazos processuais</p>
+            </div>
+
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="card-header">
+                    <h2 class="card-title">Prazos Processuais</h2>
+                    <button class="btn btn-primary" onclick="showNovoPrazoForm()">
+                        + Novo Prazo
+                    </button>
+                </div>
+                <div class="loading" id="prazosLoading">
+                    <div class="spinner"></div>
+                    <p>Carregando prazos...</p>
+                </div>
+                <div id="prazosListContainer"></div>
+            </div>
+        </section>
+
+        <!-- Novo Prazo View -->
+        <section id="prazos-novo" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">⏰ Novo Prazo</h1>
+                <p class="page-subtitle">Cadastre um novo prazo processual</p>
+            </div>
+
+            <div class="card">
+                <form id="novoPrazoForm" onsubmit="handleNovoPrazo(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Processo *</label>
+                            <select class="form-select" name="processo_id" id="prazoProcessoSelect" required>
+                                <option value="">Selecione um processo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tipo de Prazo *</label>
+                            <select class="form-select" name="tipo" required>
+                                <option value="">Selecione o tipo</option>
+                                <option value="Contestação">Contestação</option>
+                                <option value="Recurso">Recurso</option>
+                                <option value="Audiência">Audiência</option>
+                                <option value="Perícia">Perícia</option>
+                                <option value="Manifestação">Manifestação</option>
+                                <option value="Cumprimento">Cumprimento de Sentença</option>
+                                <option value="Prazo Fatal">Prazo Fatal</option>
+                                <option value="Outro">Outro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Data Limite *</label>
+                            <input type="date" class="form-input" name="data_limite" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Dias de Antecedência *</label>
+                            <input type="number" class="form-input" name="dias_antecedencia" value="3" required min="1" max="30">
+                            <small style="color: var(--text-secondary); font-size: 0.875rem;">Alertar com quantos dias de antecedência</small>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Descrição do Prazo *</label>
+                        <input type="text" class="form-input" name="descricao" required 
+                               placeholder="Ex: Apresentar contestação no processo">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Observações</label>
+                        <textarea class="form-textarea" name="observacoes" rows="3"
+                                  placeholder="Informações adicionais sobre este prazo..."></textarea>
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="submit" class="btn btn-primary">
+                            <span id="novoPrazoSubmitText">Salvar Prazo</span>
+                            <div class="spinner" id="novoPrazoSubmitSpinner" style="display: none; margin-left: 0.5rem;"></div>
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="showView('prazos')">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Configurações View -->
+        <section id="configuracoes" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">Configurações</h1>
+                <p class="page-subtitle">Gerencie as configurações do sistema</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Perfil do Usuário</h2>
+                </div>
+                <form id="perfilForm" onsubmit="handleUpdatePerfil(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Nome Completo</label>
+                            <input type="text" class="form-input" name="nome" id="perfilNome">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-input" name="email" id="perfilEmail">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Atualizar Perfil</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Alterar Senha</h2>
+                </div>
+                <form id="senhaForm" onsubmit="handleUpdateSenha(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Senha Atual</label>
+                            <input type="password" class="form-input" name="senhaAtual" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nova Senha</label>
+                            <input type="password" class="form-input" name="novaSenha" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Confirmar Nova Senha</label>
+                            <input type="password" class="form-input" name="confirmarSenha" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Alterar Senha</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Preferências do Sistema</h2>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notificações</label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="notificacoesEmail" checked>
+                        <span>Receber notificações por email</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Relatórios</label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="relatoriosAutomaticos" checked>
+                        <span>Gerar relatórios mensais automaticamente</span>
+                    </label>
+                </div>
+                <button class="btn btn-primary" onclick="salvarPreferencias()">Salvar Preferências</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Global state
+        let currentUser = null;
+        let processos = [];
+        let clientes = [];
+        let usuarios = [];
+
+        // Check authentication on load
+        window.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            await loadDashboard();
+        });
+
+        // Authentication check
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth/me', {
+                    credentials: 'include' // Use session-based auth
+                });
+
+                if (!response.ok) {
+                    throw new Error('Authentication failed');
+                }
+
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error('Authentication failed');
+                }
+
+                currentUser = data.user;
+                updateUserInfo();
+                
+                // Hide admin-only menu if not admin
+                if (currentUser.role !== 'admin') {
+                    document.getElementById('menu-usuarios').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                window.location.href = '/login.html';
+            }
+        }
+
+        // Update user info in topbar
+        function updateUserInfo() {
+            if (currentUser) {
+                document.getElementById('userName').textContent = currentUser.name || currentUser.email;
+                document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrador' : 'Usuário';
+                document.getElementById('userAvatar').textContent = (currentUser.name || currentUser.email).charAt(0).toUpperCase();
+                
+                // Update profile form
+                if (document.getElementById('perfilNome')) {
+                    document.getElementById('perfilNome').value = currentUser.name || '';
+                    document.getElementById('perfilEmail').value = currentUser.email || '';
+                }
+            }
+        }
+
+        // API request helper
+        async function apiRequest(url, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+
+            const response = await fetch(url, {
+                ...options,
+                headers,
+                credentials: 'include' // Use session-based auth
+            });
+
+            if (response.status === 401) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            return response;
+        }
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                document.getElementById('dashboardLoading').classList.add('active');
+                
+                // Load processos
+                const processosResponse = await apiRequest('/api/processos');
+                if (processosResponse.ok) {
+                    const processosData = await processosResponse.json();
+                    processos = processosData.data || [];
+                    updateDashboardStats();
+                    displayRecentProcessos();
+                }
+
+                // Load clientes
+                const clientesResponse = await apiRequest('/api/clientes');
+                if (clientesResponse.ok) {
+                    const clientesData = await clientesResponse.json();
+                    clientes = clientesData.data || [];
+                    updateDashboardStats();
+                }
+
+                // Load prazos urgentes
+                await loadPrazosUrgentes();
+
+                document.getElementById('dashboardLoading').classList.remove('active');
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                document.getElementById('dashboardLoading').classList.remove('active');
+            }
+        }
+
+        // Load prazos urgentes for dashboard
+        async function loadPrazosUrgentes() {
+            try {
+                const response = await apiRequest('/api/prazos/urgentes');
+                if (response.ok) {
+                    const data = await response.json();
+                    displayPrazosUrgentes(data.data || []);
+                }
+            } catch (error) {
+                console.error('Error loading prazos urgentes:', error);
+            }
+        }
+
+        // Display prazos urgentes on dashboard
+        function displayPrazosUrgentes(prazos) {
+            const container = document.getElementById('prazosUrgentesContainer');
+            
+            if (prazos.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p style="color: var(--success);">✅ Nenhum prazo urgente no momento</p></div>';
+                return;
+            }
+
+            let html = '<div style="padding: 1rem; display: grid; gap: 1rem;">';
+            prazos.forEach(prazo => {
+                const diasRestantes = prazo.dias_restantes;
+                const corPrazo = diasRestantes <= 1 ? 'var(--danger)' : diasRestantes <= 3 ? 'var(--warning)' : 'var(--primary-color)';
+                const icone = diasRestantes <= 1 ? '🚨' : diasRestantes <= 3 ? '⚠️' : '⏰';
+                
+                html += `
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-left: 4px solid ${corPrazo}; background: #f8f9fa; border-radius: 8px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">${icone} ${prazo.descricao}</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                                Processo: ${prazo.numero_processo || 'N/A'} | Data Limite: ${new Date(prazo.data_limite).toLocaleDateString('pt-BR')}
+                            </div>
+                        </div>
+                        <div style="text-align: center; padding: 0 1.5rem;">
+                            <div style="font-size: 2rem; font-weight: bold; color: ${corPrazo};">${diasRestantes}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">${diasRestantes === 1 ? 'DIA' : 'DIAS'}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            
+            container.innerHTML = html;
+        }
+
+        // Update dashboard statistics
+        function updateDashboardStats() {
+            document.getElementById('totalProcessos').textContent = processos.length;
+            document.getElementById('processosAndamento').textContent = 
+                processos.filter(p => p.status === 'Em Andamento' || p.status === 'Aguardando').length;
+            document.getElementById('processosFinalizados').textContent = 
+                processos.filter(p => p.status === 'Finalizado' || p.status === 'Arquivado').length;
+            document.getElementById('totalClientes').textContent = clientes.length;
+        }
+
+        // Display recent processos on dashboard
+        function displayRecentProcessos() {
+            const container = document.getElementById('recentProcessosContainer');
+            const recentProcessos = processos.slice(0, 5);
+
+            if (recentProcessos.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>Nenhum processo cadastrado ainda</p></div>';
+                return;
+            }
+
+            const table = `
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Cliente</th>
+                                <th>Tipo</th>
+                                <th>Status</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${recentProcessos.map(p => `
+                                <tr>
+                                    <td>${p.numeroProcesso || 'N/A'}</td>
+                                    <td>${getClienteName(p.clienteId)}</td>
+                                    <td>${p.tipo || 'N/A'}</td>
+                                    <td>${getStatusBadge(p.status)}</td>
+                                    <td>${formatDate(p.dataAbertura)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            container.innerHTML = table;
+        }
+
+        // Get client name by ID
+        function getClienteName(clienteId) {
+            const cliente = clientes.find(c => c.id === clienteId);
+            return cliente ? cliente.nome : 'Cliente não encontrado';
+        }
+
+        // Get status badge HTML
+        function getStatusBadge(status) {
+            const badges = {
+                'Em Andamento': 'badge-info',
+                'Aguardando': 'badge-warning',
+                'Finalizado': 'badge-success',
+                'Arquivado': 'badge-secondary'
+            };
+            const badgeClass = badges[status] || 'badge-info';
+            return `<span class="badge ${badgeClass}">${status}</span>`;
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR');
+        }
+
+        // Load processos list
+        async function loadProcessos() {
+            try {
+                document.getElementById('processosLoading').classList.add('active');
+                const response = await apiRequest('/api/processos');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    processos = data.data || [];
+                    displayProcessos();
+                }
+                
+                document.getElementById('processosLoading').classList.remove('active');
+            } catch (error) {
+                console.error('Error loading processos:', error);
+                document.getElementById('processosLoading').classList.remove('active');
+            }
+        }
+
+        // Display processos in table
+        function displayProcessos() {
+            const tbody = document.getElementById('processosTableBody');
+            const emptyState = document.getElementById('processosEmpty');
+            
+            if (processos.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            tbody.innerHTML = processos.map(p => `
+                <tr>
+                    <td>${p.numeroProcesso || 'N/A'}</td>
+                    <td>${getClienteName(p.clienteId)}</td>
+                    <td>${p.tipo || 'N/A'}</td>
+                    <td>${getStatusBadge(p.status)}</td>
+                    <td>${formatDate(p.dataAbertura)}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-secondary" onclick="editProcesso(${p.id})">✏️ Editar</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteProcesso(${p.id})">🗑️ Excluir</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Load clientes list
+        async function loadClientes() {
+            try {
+                document.getElementById('clientesLoading').classList.add('active');
+                const response = await apiRequest('/api/clientes');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    clientes = data.data || [];
+                    displayClientes();
+                    updateClienteSelect();
+                }
+                
+                document.getElementById('clientesLoading').classList.remove('active');
+            } catch (error) {
+                console.error('Error loading clientes:', error);
+                document.getElementById('clientesLoading').classList.remove('active');
+            }
+        }
+
+        // Display clientes in table
+        function displayClientes() {
+            const tbody = document.getElementById('clientesTableBody');
+            const emptyState = document.getElementById('clientesEmpty');
+            
+            if (clientes.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            tbody.innerHTML = clientes.map(c => {
+                const clienteProcessos = processos.filter(p => p.clienteId === c.id).length;
+                return `
+                    <tr>
+                        <td>${c.nome}</td>
+                        <td>${c.cpfCnpj || 'N/A'}</td>
+                        <td>${c.email || 'N/A'}</td>
+                        <td>${c.telefone || 'N/A'}</td>
+                        <td><span class="badge badge-info">${clienteProcessos}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-secondary" onclick="editCliente(${c.id})">✏️ Editar</button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteCliente(${c.id})">🗑️ Excluir</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Update cliente select dropdown
+        function updateClienteSelect() {
+            const select = document.getElementById('clienteSelect');
+            select.innerHTML = '<option value="">Selecione um cliente</option>' +
+                clientes.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+        }
+
+        // Load usuarios list
+        async function loadUsuarios() {
+            if (currentUser.role !== 'admin') {
+                return;
+            }
+
+            try {
+                document.getElementById('usuariosLoading').classList.add('active');
+                const response = await apiRequest('/api/usuarios');
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    usuarios = data.data || [];
+                    displayUsuarios();
+                }
+                
+                document.getElementById('usuariosLoading').classList.remove('active');
+            } catch (error) {
+                console.error('Error loading usuarios:', error);
+                document.getElementById('usuariosLoading').classList.remove('active');
+            }
+        }
+
+        // Display usuarios in table
+        function displayUsuarios() {
+            const tbody = document.getElementById('usuariosTableBody');
+            tbody.innerHTML = usuarios.map(u => `
+                <tr>
+                    <td>${u.name || 'N/A'}</td>
+                    <td>${u.email}</td>
+                    <td><span class="badge ${u.role === 'admin' ? 'badge-danger' : 'badge-info'}">${u.role}</span></td>
+                    <td><span class="badge badge-success">Ativo</span></td>
+                    <td>${formatDate(u.lastLogin)}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn btn-sm btn-secondary" onclick="editUsuario(${u.id})">✏️ Editar</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteUsuario(${u.id})">🗑️ Excluir</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Handle novo processo form
+        async function handleNovoProcesso(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await apiRequest('/api/processos', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('Processo cadastrado com sucesso!');
+                    event.target.reset();
+                    showView('processos-lista');
+                    await loadProcessos();
+                    await loadDashboard();
+                } else {
+                    const error = await response.json();
+                    alert('Erro ao cadastrar processo: ' + (error.message || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Error creating processo:', error);
+                alert('Erro ao cadastrar processo');
+            }
+        }
+
+        // Handle novo cliente form
+        async function handleNovoCliente(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await apiRequest('/api/clientes', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('Cliente cadastrado com sucesso!');
+                    event.target.reset();
+                    showView('clientes-lista');
+                    await loadClientes();
+                    await loadDashboard();
+                } else {
+                    const error = await response.json();
+                    alert('Erro ao cadastrar cliente: ' + (error.message || 'Erro desconhecido'));
+                }
+            } catch (error) {
+                console.error('Error creating cliente:', error);
+                alert('Erro ao cadastrar cliente');
+            }
+        }
+
+        // View switching
+        function showView(viewId) {
+            // Hide all views
+            document.querySelectorAll('.view-section').forEach(section => {
+                section.classList.remove('active');
+            });
+
+            // Show selected view
+            document.getElementById(viewId).classList.add('active');
+
+            // Update active menu items
+            document.querySelectorAll('.menu-link').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            // Load data based on view
+            if (viewId === 'processos-lista') {
+                loadProcessos();
+            } else if (viewId === 'processos-novo') {
+                loadClientesForProcesso();
+            } else if (viewId === 'clientes-lista') {
+                loadClientes();
+            } else if (viewId === 'clientes-novo') {
+                if (clientes.length === 0) {
+                    loadClientes();
+                }
+            } else if (viewId === 'usuarios') {
+                loadUsuarios();
+            } else if (viewId === 'dashboard') {
+                loadDashboard();
+            } else if (viewId === 'prazos') {
+                loadPrazos();
+            } else if (viewId === 'prazos-novo') {
+                loadProcessosForPrazo();
+            }
+
+            // Close mobile menu
+            if (window.innerWidth <= 768) {
+                toggleSidebar();
+            }
+        }
+
+        // Load all prazos
+        async function loadPrazos() {
+            try {
+                document.getElementById('prazosLoading').classList.add('active');
+                const response = await apiRequest('/api/prazos');
+                if (response.ok) {
+                    const data = await response.json();
+                    displayPrazosList(data.data || []);
+                }
+                document.getElementById('prazosLoading').classList.remove('active');
+            } catch (error) {
+                console.error('Error loading prazos:', error);
+                document.getElementById('prazosLoading').classList.remove('active');
+            }
+        }
+
+        // Display prazos list
+        function displayPrazosList(prazos) {
+            const container = document.getElementById('prazosListContainer');
+            
+            if (prazos.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⏰</div>
+                        <h3 class="empty-state-title">Nenhum prazo cadastrado</h3>
+                        <p>Comece adicionando prazos aos seus processos</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Group prazos by status
+            const urgentes = prazos.filter(p => p.status_prazo === 'urgente');
+            const normais = prazos.filter(p => p.status_prazo === 'normal');
+            const vencidos = prazos.filter(p => p.status_prazo === 'vencido');
+            const concluidos = prazos.filter(p => p.status_prazo === 'concluido');
+
+            let html = '';
+
+            // Vencidos
+            if (vencidos.length > 0) {
+                html += '<div style="margin-bottom: 2rem;"><h3 style="color: var(--danger); margin-bottom: 1rem;">🚨 Prazos Vencidos</h3>';
+                vencidos.forEach(prazo => {
+                    html += renderPrazoCard(prazo, 'var(--danger)');
+                });
+                html += '</div>';
+            }
+
+            // Urgentes
+            if (urgentes.length > 0) {
+                html += '<div style="margin-bottom: 2rem;"><h3 style="color: var(--warning); margin-bottom: 1rem;">⚠️ Prazos Urgentes</h3>';
+                urgentes.forEach(prazo => {
+                    html += renderPrazoCard(prazo, 'var(--warning)');
+                });
+                html += '</div>';
+            }
+
+            // Normais
+            if (normais.length > 0) {
+                html += '<div style="margin-bottom: 2rem;"><h3 style="color: var(--primary-color); margin-bottom: 1rem;">⏰ Prazos Normais</h3>';
+                normais.forEach(prazo => {
+                    html += renderPrazoCard(prazo, 'var(--primary-color)');
+                });
+                html += '</div>';
+            }
+
+            // Concluídos (collapsed by default)
+            if (concluidos.length > 0) {
+                html += '<div style="margin-bottom: 2rem;"><h3 style="color: var(--success); margin-bottom: 1rem;">✅ Concluídos (${concluidos.length})</h3>';
+                html += '<div style="max-height: 300px; overflow-y: auto;">';
+                concluidos.forEach(prazo => {
+                    html += renderPrazoCard(prazo, 'var(--success)');
+                });
+                html += '</div></div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Render individual prazo card
+        function renderPrazoCard(prazo, cor) {
+            const diasInfo = prazo.concluido ? 
+                '<span style="color: var(--success); font-weight: 600;">✓ Concluído</span>' :
+                `<span style="font-size: 1.25rem; font-weight: bold; color: ${cor};">${Math.abs(prazo.dias_restantes)} ${prazo.dias_restantes < 0 ? 'dias atrás' : prazo.dias_restantes === 1 ? 'dia' : 'dias'}</span>`;
+            
+            return `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; margin-bottom: 0.5rem; border-left: 4px solid ${cor}; background: #f8f9fa; border-radius: 8px;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem;">${prazo.descricao}</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                            <strong>Processo:</strong> ${prazo.numero_processo || 'N/A'} - ${prazo.processo_titulo || ''}
+                        </div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary);">
+                            <strong>Tipo:</strong> ${prazo.tipo} | <strong>Data Limite:</strong> ${new Date(prazo.data_limite).toLocaleDateString('pt-BR')}
+                        </div>
+                        ${prazo.observacoes ? `<div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;"><strong>Obs:</strong> ${prazo.observacoes}</div>` : ''}
+                    </div>
+                    <div style="text-align: center; padding: 0 1.5rem;">
+                        ${diasInfo}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Show novo prazo form
+        function showNovoPrazoForm() {
+            showView('prazos-novo');
+            loadProcessosForPrazo();
+        }
+
+        // Load processos for prazo form
+        async function loadProcessosForPrazo() {
+            try {
+                const response = await apiRequest('/api/processos');
+                if (response.ok) {
+                    const data = await response.json();
+                    const processos = data.data || [];
+                    
+                    const select = document.getElementById('prazoProcessoSelect');
+                    select.innerHTML = '<option value="">Selecione um processo</option>';
+                    
+                    processos.forEach(processo => {
+                        const option = document.createElement('option');
+                        option.value = processo.id;
+                        option.textContent = `${processo.numero_processo} - ${processo.titulo || 'Sem título'}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Erro ao carregar processos:', error);
+            }
+        }
+
+        // Handle novo prazo form submission
+        async function handleNovoPrazo(event) {
+            event.preventDefault();
+            
+            const submitBtn = document.getElementById('novoPrazoSubmitText');
+            const spinner = document.getElementById('novoPrazoSubmitSpinner');
+            
+            try {
+                // Show loading state
+                submitBtn.textContent = 'Salvando...';
+                spinner.style.display = 'inline-block';
+                
+                const formData = new FormData(event.target);
+                const prazoData = {
+                    processo_id: parseInt(formData.get('processo_id')),
+                    descricao: formData.get('descricao'),
+                    tipo: formData.get('tipo'),
+                    data_limite: formData.get('data_limite'),
+                    dias_antecedencia: parseInt(formData.get('dias_antecedencia')) || 3,
+                    observacoes: formData.get('observacoes') || null
+                };
+
+                const response = await apiRequest('/api/prazos', {
+                    method: 'POST',
+                    body: JSON.stringify(prazoData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    showNotification('Prazo cadastrado com sucesso!', 'success');
+                    event.target.reset();
+                    showView('prazos');
+                    loadPrazos(); // Reload prazos list
+                    loadDashboard(); // Update dashboard
+                } else {
+                    showNotification(data.error || 'Erro ao cadastrar prazo', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao cadastrar prazo:', error);
+                showNotification('Erro ao cadastrar prazo: ' + error.message, 'error');
+            } finally {
+                // Reset button state
+                submitBtn.textContent = 'Salvar Prazo';
+                spinner.style.display = 'none';
+            }
+        }
+
+        // Show notification (toast-style)
+        function showNotification(message, type = 'info') {
+            // For now, use alert. Can be enhanced later with toast UI
+            alert(message);
+        }
+
+        // Load clientes for processo form
+        async function loadClientesForProcesso() {
+            try {
+                const response = await apiRequest('/api/clientes');
+                if (response.ok) {
+                    const data = await response.json();
+                    const clientes = data.data || [];
+                    
+                    const select = document.getElementById('clienteSelect');
+                    if (select) {
+                        select.innerHTML = '<option value="">Selecione um cliente</option>';
+                        
+                        clientes.forEach(cliente => {
+                            const option = document.createElement('option');
+                            option.value = cliente.id;
+                            option.textContent = `${cliente.nome} - CPF: ${cliente.cpf}`;
+                            select.appendChild(option);
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar clientes:', error);
+            }
+        }
+
+        // Toggle submenu
+        function toggleSubmenu(submenuId) {
+            const submenu = document.getElementById(submenuId);
+            submenu.classList.toggle('active');
+        }
+
+        // Toggle sidebar (mobile)
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        // Edit processo (placeholder)
+        function editProcesso(id) {
+            alert('Edição de processo em desenvolvimento');
+        }
+
+        // Delete processo
+        async function deleteProcesso(id) {
+            if (!confirm('Tem certeza que deseja excluir este processo?')) {
+                return;
+            }
+
+            try {
+                const response = await apiRequest(`/api/processos/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('Processo excluído com sucesso!');
+                    await loadProcessos();
+                    await loadDashboard();
+                } else {
+                    alert('Erro ao excluir processo');
+                }
+            } catch (error) {
+                console.error('Error deleting processo:', error);
+                alert('Erro ao excluir processo');
+            }
+        }
+
+        // Edit cliente (placeholder)
+        function editCliente(id) {
+            alert('Edição de cliente em desenvolvimento');
+        }
+
+        // Delete cliente
+        async function deleteCliente(id) {
+            if (!confirm('Tem certeza que deseja excluir este cliente?')) {
+                return;
+            }
+
+            try {
+                const response = await apiRequest(`/api/clientes/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('Cliente excluído com sucesso!');
+                    await loadClientes();
+                    await loadDashboard();
+                } else {
+                    alert('Erro ao excluir cliente');
+                }
+            } catch (error) {
+                console.error('Error deleting cliente:', error);
+                alert('Erro ao excluir cliente');
+            }
+        }
+
+        // Placeholder functions
+        function editUsuario(id) {
+            alert('Edição de usuário em desenvolvimento');
+        }
+
+        function deleteUsuario(id) {
+            if (confirm('Tem certeza que deseja excluir este usuário?')) {
+                alert('Exclusão de usuário em desenvolvimento');
+            }
+        }
+
+        function showNovoUsuarioModal() {
+            alert('Criação de usuário em desenvolvimento');
+        }
+
+        function handleUpdatePerfil(event) {
+            event.preventDefault();
+            alert('Atualização de perfil em desenvolvimento');
+        }
+
+        function handleUpdateSenha(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const novaSenha = formData.get('novaSenha');
+            const confirmarSenha = formData.get('confirmarSenha');
+
+            if (novaSenha !== confirmarSenha) {
+                alert('As senhas não coincidem');
+                return;
+            }
+
+            alert('Alteração de senha em desenvolvimento');
+            event.target.reset();
+        }
+
+        function salvarPreferencias() {
+            alert('Preferências salvas com sucesso!');
+        }
+
+        // Handle logout
+        async function handleLogout() {
+            if (confirm('Tem certeza que deseja sair?')) {
+                try {
+                    await fetch('/api/auth/logout', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                } catch (error) {
+                    console.error('Erro ao fazer logout:', error);
+                }
+                window.location.href = '/login.html';
+            }
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (event) => {
+            const sidebar = document.getElementById('sidebar');
+            const menuToggle = document.querySelector('.menu-toggle');
+            
+            if (window.innerWidth <= 768 && sidebar.classList.contains('active')) {
+                if (!sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
+                    toggleSidebar();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
