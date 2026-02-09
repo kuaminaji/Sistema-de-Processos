@@ -2,6 +2,10 @@ const request = require('supertest');
 const app = require('../src/server');
 const { Database } = require('../src/database/init');
 
+// Test constants
+const TEST_ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@local';
+const TEST_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+
 describe('Auth API', () => {
   let agent;
   
@@ -16,7 +20,7 @@ describe('Auth API', () => {
       await db.connect();
       await db.run('DELETE FROM brute_force_locks');
       // Reset password change flag for testing
-      await db.run("UPDATE usuarios SET forcar_troca_senha = 0 WHERE email = 'admin@local'");
+      await db.run(`UPDATE usuarios SET forcar_troca_senha = 0 WHERE email = '${TEST_ADMIN_EMAIL}'`);
       await db.close();
     } catch (error) {
       console.error('Error clearing brute force locks:', error);
@@ -51,14 +55,14 @@ describe('Auth API', () => {
       const response = await agent
         .post('/api/auth/login')
         .send({
-          email: 'admin@local',
-          senha: 'admin123'
+          email: TEST_ADMIN_EMAIL,
+          senha: TEST_ADMIN_PASSWORD
         });
       
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data.usuario).toBeDefined();
-      expect(response.body.data.usuario.email).toBe('admin@local');
+      expect(response.body.data.usuario.email).toBe(TEST_ADMIN_EMAIL);
       expect(response.body.data.permissoes).toBeDefined();
     });
   });
@@ -79,8 +83,8 @@ describe('Auth API', () => {
         .post('/api/auth/login')
         .set('Accept', 'application/json')
         .send({
-          email: 'admin@local',
-          senha: 'admin123'
+          email: TEST_ADMIN_EMAIL,
+          senha: TEST_ADMIN_PASSWORD
         });
       
       const response = await agent
@@ -101,8 +105,8 @@ describe('Auth API', () => {
         .post('/api/auth/login')
         .set('Accept', 'application/json')
         .send({
-          email: 'admin@local',
-          senha: 'admin123'
+          email: TEST_ADMIN_EMAIL,
+          senha: TEST_ADMIN_PASSWORD
         });
     });
     
@@ -135,7 +139,7 @@ describe('Auth API', () => {
         .post('/api/auth/trocar-senha')
         .set('Accept', 'application/json')
         .send({
-          senhaAtual: 'admin123',
+          senhaAtual: TEST_ADMIN_PASSWORD,
           senhaNova: 'weak',
           confirmarSenha: 'weak'
         });
@@ -150,7 +154,7 @@ describe('Auth API', () => {
         .post('/api/auth/trocar-senha')
         .set('Accept', 'application/json')
         .send({
-          senhaAtual: 'admin123',
+          senhaAtual: TEST_ADMIN_PASSWORD,
           senhaNova: 'NewP@ssw0rd123!',
           confirmarSenha: 'DifferentP@ssw0rd!'
         });
@@ -167,8 +171,8 @@ describe('Auth API', () => {
         .post('/api/auth/login')
         .set('Accept', 'application/json')
         .send({
-          email: 'admin@local',
-          senha: 'admin123'
+          email: TEST_ADMIN_EMAIL,
+          senha: TEST_ADMIN_PASSWORD
         });
     });
     
@@ -192,8 +196,8 @@ describe('Auth API', () => {
         .post('/api/auth/login')
         .set('Accept', 'application/json')
         .send({
-          email: 'admin@local',
-          senha: 'admin123'
+          email: TEST_ADMIN_EMAIL,
+          senha: TEST_ADMIN_PASSWORD
         });
       
       const response = await agent

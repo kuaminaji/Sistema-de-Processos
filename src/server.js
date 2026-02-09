@@ -58,6 +58,11 @@ app.use(session({
   }
 }));
 
+// Warn if using default session secret in production
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  console.warn('⚠️  WARNING: Using default SESSION_SECRET in production. Please set SESSION_SECRET environment variable!');
+}
+
 // Rate limiting global
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutos

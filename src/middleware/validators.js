@@ -1,3 +1,6 @@
+// Caracteres especiais permitidos para validação de senha
+const SPECIAL_CHARS_REGEX = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/;
+
 // Validação de CPF
 function validarCPF(cpf) {
   if (!cpf) return false;
@@ -97,7 +100,7 @@ function validarSenhaForte(senha) {
     };
   }
   
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(senha)) {
+  if (!SPECIAL_CHARS_REGEX.test(senha)) {
     return {
       valida: false,
       mensagem: 'Senha deve conter pelo menos um símbolo'
