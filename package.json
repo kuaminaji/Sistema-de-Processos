@@ -1,0 +1,45 @@
+{
+  "name": "sistema-de-processos-enterprise",
+  "version": "1.0.0",
+  "description": "Sistema de Gerenciamento de Processos Jurídicos - Versão Enterprise",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "init-db": "node src/database/init.js",
+    "test": "NODE_ENV=test jest --testTimeout=10000",
+    "test:watch": "NODE_ENV=test jest --watch",
+    "test:coverage": "NODE_ENV=test jest --coverage"
+  },
+  "keywords": [
+    "juridico",
+    "processos",
+    "gestao",
+    "enterprise"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "csurf": "^1.11.0",
+    "dotenv": "^16.6.1",
+    "exceljs": "^4.4.0",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "express-session": "^1.17.3",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "otplib": "^12.0.1",
+    "pdfkit": "^0.14.0",
+    "qrcode": "^1.5.3",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
