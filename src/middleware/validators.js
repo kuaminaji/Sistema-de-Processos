@@ -114,11 +114,8 @@ function validarSenhaForte(senha) {
 function sanitizarInput(texto) {
   if (!texto) return '';
   
-  // Remove tags HTML
-  texto = texto.replace(/<[^>]*>/g, '');
-  
-  // Remove scripts
-  texto = texto.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  // Remove tags HTML de forma mais segura
+  texto = String(texto).replace(/</g, '&lt;').replace(/>/g, '&gt;');
   
   return texto.trim();
 }

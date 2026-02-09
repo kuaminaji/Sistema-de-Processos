@@ -47,6 +47,9 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Sessão
+// Note: CSRF protection is selectively applied per route
+// Auth endpoints use skipCSRFForAPI middleware to allow API requests
+// Other endpoints use csrfProtection middleware explicitly
 app.use(session({
   secret: process.env.SESSION_SECRET || 'change-this-secret-in-production',
   resave: false,
