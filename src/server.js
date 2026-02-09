@@ -93,7 +93,7 @@ app.get('/api/csrf-token', csrfProtection, (req, res) => {
 
 // Rotas da API
 const authRoutes = require('./routes/auth');
-// const processosRoutes = require('./routes/processos');
+const processosRoutes = require('./routes/processos');
 // const clientesRoutes = require('./routes/clientes');
 // const movimentacoesRoutes = require('./routes/movimentacoes');
 // const usuariosRoutes = require('./routes/usuarios');
@@ -104,7 +104,7 @@ const authRoutes = require('./routes/auth');
 // const exportRoutes = require('./routes/export');
 
 app.use('/api/auth', authRoutes);
-// app.use('/api/processos', csrfProtection, processosRoutes);
+app.use('/api/processos', csrfProtection, processosRoutes);
 // app.use('/api/clientes', csrfProtection, clientesRoutes);
 // app.use('/api/movimentacoes', csrfProtection, movimentacoesRoutes);
 // app.use('/api/usuarios', csrfProtection, usuariosRoutes);
