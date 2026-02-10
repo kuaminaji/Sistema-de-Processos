@@ -73,6 +73,19 @@
     <div class="test-container">
         <h1>🧪 Teste de Correção do Login</h1>
         
+        <div class="test-step" style="background: #fef3c7; border-left-color: #f59e0b;">
+            <h3>⚠️ Importante: Erro SSL_PROTOCOL_ERROR</h3>
+            <p><strong>Se você ver erro "ERR_SSL_PROTOCOL_ERROR":</strong></p>
+            <p>O browser está forçando HTTPS quando o servidor está em HTTP.</p>
+            <p><strong>Solução:</strong></p>
+            <ul>
+                <li>Chrome: Vá para <code>chrome://net-internals/#hsts</code> e delete domain <code>localhost</code></li>
+                <li>OU use modo incógnito (Ctrl+Shift+N)</li>
+                <li>OU acesse via <code>http://127.0.0.1:3000</code> ao invés de <code>localhost</code></li>
+            </ul>
+            <p>Ver <strong>SOLUCAO_SSL_ERROR.md</strong> para detalhes completos.</p>
+        </div>
+        
         <div class="test-step">
             <h3>1️⃣ Teste do CSRF Token <span id="csrf-status" class="status pending">Pendente</span></h3>
             <button onclick="testCSRF()">Testar CSRF Token</button>

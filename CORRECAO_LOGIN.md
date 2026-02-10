@@ -15,7 +15,12 @@
 
 ### 3. Erro SSL_PROTOCOL_ERROR
 **Problema**: Browser tentando usar HTTPS quando servidor está em HTTP  
-**Solução**: Limpar cache do browser (instrução abaixo)
+**Solução**: Limpar cache do browser E deletar estado HSTS (ver SOLUCAO_SSL_ERROR.md para detalhes completos)
+
+**Solução Rápida**:
+1. Chrome: Acesse `chrome://net-internals/#hsts` e delete domain `localhost`
+2. OU use modo incógnito (Ctrl+Shift+N)
+3. OU acesse via IP: `http://127.0.0.1:3000`
 
 ---
 
