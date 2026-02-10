@@ -66,7 +66,18 @@ if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
   console.warn('⚠️  WARNING: Using default SESSION_SECRET in production. Please set SESSION_SECRET environment variable!');
 }
 
-// Rate limiting global
+// Arquivos estáticos (antes do rate limiting)
+app.use(express.static(path.join(__dirname, '../public')));
+
+// CSRF protection
+const csrfProtection = csurf({ cookie: false });
+
+// Rota para obter token CSRF (sem rate limiting)
+app.get('/api/csrf-token', csrfProtection, (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
+// Rate limiting global (aplicado após CSRF token route)
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutos
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
@@ -76,20 +87,13 @@ const limiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Skip rate limiting for static files and CSRF token
+  skip: (req) => {
+    return req.path === '/api/csrf-token' || req.path.startsWith('/css') || req.path.startsWith('/js') || req.path.startsWith('/images');
+  }
 });
 
 app.use(limiter);
-
-// Arquivos estáticos
-app.use(express.static(path.join(__dirname, '../public')));
-
-// CSRF protection
-const csrfProtection = csurf({ cookie: false });
-
-// Rota para obter token CSRF
-app.get('/api/csrf-token', csrfProtection, (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
-});
 
 // Rotas da API
 const authRoutes = require('./routes/auth');
