@@ -7,7 +7,8 @@ async function consultarPorCPF(req, res) {
   const db = new Database();
   
   try {
-    const { cpf } = req.query;
+    // Support both query parameter (?cpf=xxx) and path parameter (/:cpf)
+    const cpf = req.params.cpf || req.query.cpf;
     
     if (!cpf) {
       return res.status(400).json({
@@ -107,7 +108,8 @@ async function consultarPorNumero(req, res) {
   const db = new Database();
   
   try {
-    const { numero } = req.query;
+    // Support both query parameter (?numero=xxx) and path parameter (/:numero)
+    const numero = req.params.numero || req.query.numero;
     
     if (!numero) {
       return res.status(400).json({

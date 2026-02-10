@@ -95,6 +95,11 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
+// Favicon redirect (redirect .ico to .svg)
+app.get('/favicon.ico', (req, res) => {
+  res.redirect(301, '/favicon.svg');
+});
+
 // Rotas da API
 const authRoutes = require('./routes/auth');
 const processosRoutes = require('./routes/processos');

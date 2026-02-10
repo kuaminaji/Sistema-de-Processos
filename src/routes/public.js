@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { query } = require('express-validator');
+const { query, param } = require('express-validator');
 const publicController = require('../controllers/publicController');
 const rateLimit = require('express-rate-limit');
 
@@ -37,7 +37,32 @@ const publicRateLimiter = rateLimit({
   }
 });
 
-// GET /api/public/consultar-cpf - Consultar processos por CPF
+// GET /api/public/consultarPorCPF/:cpf - Consultar processos por CPF (path parameter)
+router.get(
+  '/consultarPorCPF/:cpf',
+  publicRateLimiter,
+  [
+    param('cpf').notEmpty().withMessage('CPF é obrigatório')
+      .isString().withMessage('CPF deve ser uma string')
+  ],
+  handleValidationErrors,
+  publicController.consultarPorCPF
+);
+
+// GET /api/public/consultarPorNumero/:numero - Consultar processo por número (path parameter)
+router.get(
+  '/consultarPorNumero/:numero',
+  publicRateLimiter,
+  [
+    param('numero').notEmpty().withMessage('Número do processo é obrigatório')
+      .isString().withMessage('Número do processo deve ser uma string')
+  ],
+  handleValidationErrors,
+  publicController.consultarPorNumero
+);
+
+// Legacy routes with query parameters (for backward compatibility)
+// GET /api/public/consultar-cpf?cpf=xxx
 router.get(
   '/consultar-cpf',
   publicRateLimiter,
@@ -49,7 +74,7 @@ router.get(
   publicController.consultarPorCPF
 );
 
-// GET /api/public/consultar-numero - Consultar processo por número
+// GET /api/public/consultar-numero?numero=xxx
 router.get(
   '/consultar-numero',
   publicRateLimiter,
