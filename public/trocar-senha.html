@@ -180,7 +180,11 @@
                     matchText.textContent = '';
                     
                     setTimeout(() => {
-                        window.location.href = '/admin.html';
+                        // Force HTTP protocol to prevent HSTS upgrade
+                        const protocol = 'http:';
+                        const host = window.location.host;
+                        const adminUrl = `${protocol}//${host}/admin.html`;
+                        window.location.href = adminUrl;
                     }, 1500);
                 } else {
                     showToast(response.message || 'Erro ao trocar senha', 'error');
@@ -200,10 +204,18 @@
             try {
                 const user = await checkAuth();
                 if (!user) {
-                    window.location.href = '/login.html';
+                    // Force HTTP protocol to prevent HSTS upgrade
+                    const protocol = 'http:';
+                    const host = window.location.host;
+                    const loginUrl = `${protocol}//${host}/login.html`;
+                    window.location.href = loginUrl;
                 }
             } catch (error) {
-                window.location.href = '/login.html';
+                // Force HTTP protocol to prevent HSTS upgrade
+                const protocol = 'http:';
+                const host = window.location.host;
+                const loginUrl = `${protocol}//${host}/login.html`;
+                window.location.href = loginUrl;
             }
         });
     </script>

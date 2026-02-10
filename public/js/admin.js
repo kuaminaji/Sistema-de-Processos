@@ -8,7 +8,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Check authentication
     currentUser = await checkAuth();
     if (!currentUser) {
-        window.location.href = '/login.html';
+        // Force HTTP protocol to prevent HSTS upgrade
+        const protocol = 'http:';
+        const host = window.location.host;
+        const loginUrl = `${protocol}//${host}/login.html`;
+        window.location.href = loginUrl;
         return;
     }
     

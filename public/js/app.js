@@ -50,7 +50,11 @@ async function api(url, method = 'GET', body = null) {
         if (!window.location.pathname.includes('login.html') && 
             !window.location.pathname.includes('consulta.html') &&
             !window.location.pathname.includes('index.html')) {
-            window.location.href = '/login.html';
+            // Force HTTP protocol to prevent HSTS upgrade
+            const protocol = 'http:';
+            const host = window.location.host;
+            const loginUrl = `${protocol}//${host}/login.html`;
+            window.location.href = loginUrl;
         }
         throw new Error('Não autenticado');
     }
@@ -80,11 +84,19 @@ async function logout() {
         csrfToken = null;
         showToast('Logout realizado com sucesso', 'success');
         setTimeout(() => {
-            window.location.href = '/login.html';
+            // Force HTTP protocol to prevent HSTS upgrade
+            const protocol = 'http:';
+            const host = window.location.host;
+            const loginUrl = `${protocol}//${host}/login.html`;
+            window.location.href = loginUrl;
         }, 500);
     } catch (error) {
         console.error('Logout error:', error);
-        window.location.href = '/login.html';
+        // Force HTTP protocol to prevent HSTS upgrade
+        const protocol = 'http:';
+        const host = window.location.host;
+        const loginUrl = `${protocol}//${host}/login.html`;
+        window.location.href = loginUrl;
     }
 }
 

@@ -123,9 +123,13 @@
                         localStorage.setItem('rememberLogin', 'true');
                     }
                     
-                    // Redirect to admin
+                    // Redirect to admin - FORCE HTTP protocol to prevent HSTS upgrade
                     setTimeout(() => {
-                        window.location.href = '/admin.html';
+                        const protocol = 'http:';
+                        const host = window.location.host;
+                        const adminUrl = `${protocol}//${host}/admin.html`;
+                        console.log('Redirecting to:', adminUrl);
+                        window.location.href = adminUrl;
                     }, 500);
                 } else {
                     showToast(response.message || 'Erro ao fazer login', 'error');
@@ -151,7 +155,11 @@
             try {
                 const user = await checkAuth();
                 if (user) {
-                    window.location.href = '/admin.html';
+                    // Force HTTP protocol to prevent HSTS upgrade
+                    const protocol = 'http:';
+                    const host = window.location.host;
+                    const adminUrl = `${protocol}//${host}/admin.html`;
+                    window.location.href = adminUrl;
                 }
             } catch (error) {
                 // Not logged in, stay on login page

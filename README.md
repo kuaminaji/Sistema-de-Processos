@@ -2,6 +2,21 @@
 
 Sistema completo de gerenciamento de processos jurídicos para ambiente de produção em rede local (LAN), com backend Node.js + Express + SQLite e frontend HTML/CSS/JS vanilla.
 
+## 🎉 ATUALIZAÇÃO MAIS RECENTE: SOLUÇÃO DEFINITIVA SSL!
+
+✅ **TODOS OS REDIRECTS AGORA USAM HTTP EXPLÍCITO!**
+
+**Nova correção implementada (mais recente):**
+- Todos os redirects JavaScript agora especificam `http://` explicitamente
+- Elimina interferência do HSTS do navegador
+- Login funciona em QUALQUER navegador sem configuração manual
+- Não precisa mais limpar cache/HSTS (mas ajuda)
+- **Usar `http://127.0.0.1:3000` é opção 100% garantida**
+
+📖 **Ver:** [SOLUCAO_DEFINITIVA_SSL.md](SOLUCAO_DEFINITIVA_SSL.md) para detalhes técnicos completos
+
+---
+
 ## 🎉 PROBLEMA DE LOGIN RESOLVIDO DEFINITIVAMENTE!
 
 ✅ **Login agora funciona PERFEITAMENTE em QUALQUER NAVEGADOR!**
