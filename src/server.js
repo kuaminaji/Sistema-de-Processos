@@ -144,15 +144,31 @@ async function start() {
     console.log('✅ Conexão com banco de dados OK');
     
     app.listen(PORT, () => {
-      console.log(`\n🚀 Servidor rodando na porta ${PORT}`);
-      console.log(`📝 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`🔗 URL: http://localhost:${PORT}`);
-      console.log(`\n📊 Dashboard: http://localhost:${PORT}/admin.html`);
-      console.log(`🔍 Consulta Pública: http://localhost:${PORT}/consulta.html`);
-      console.log(`\n⚠️  Credenciais padrão:`);
-      console.log(`   Email: ${process.env.ADMIN_EMAIL || 'admin@local'}`);
-      console.log(`   Senha: ${process.env.ADMIN_PASSWORD || 'admin123'}`);
-      console.log(`   💡 Troque a senha quando quiser através do menu Perfil\n`);
+      console.log('\n═══════════════════════════════════════════════════════════════');
+      console.log('  🚀 SERVIDOR INICIADO COM SUCESSO!');
+      console.log('═══════════════════════════════════════════════════════════════\n');
+      
+      console.log('  ⚠️  IMPORTANTE: USE O ENDEREÇO IP, NÃO USE "localhost"');
+      console.log('  ─────────────────────────────────────────────────────────────');
+      console.log(`  ✅ ACESSE AQUI:  http://127.0.0.1:${PORT}/login.html`);
+      console.log(`  ❌ EVITE USAR:   http://localhost:${PORT} (pode dar erro SSL)`);
+      console.log('  ─────────────────────────────────────────────────────────────\n');
+      
+      console.log('  📌 Por quê usar 127.0.0.1?');
+      console.log('     Navegadores forçam HTTPS no "localhost" devido ao HSTS.');
+      console.log('     O IP 127.0.0.1 não tem essa restrição e sempre funciona!\n');
+      
+      console.log('  🔗 URLs do Sistema:');
+      console.log(`     • Login:    http://127.0.0.1:${PORT}/login.html`);
+      console.log(`     • Dashboard: http://127.0.0.1:${PORT}/admin.html`);
+      console.log(`     • Consulta:  http://127.0.0.1:${PORT}/consulta.html\n`);
+      
+      console.log('  🔑 Credenciais Padrão:');
+      console.log(`     Email: ${process.env.ADMIN_EMAIL || 'admin@local'}`);
+      console.log(`     Senha: ${process.env.ADMIN_PASSWORD || 'admin123'}`);
+      console.log('     💡 Troque a senha quando quiser no menu Perfil\n');
+      
+      console.log('═══════════════════════════════════════════════════════════════\n');
     });
   } catch (error) {
     console.error('❌ Erro ao iniciar servidor:', error);

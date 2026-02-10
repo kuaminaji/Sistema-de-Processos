@@ -2,18 +2,20 @@
 
 Sistema completo de gerenciamento de processos jurídicos para ambiente de produção em rede local (LAN), com backend Node.js + Express + SQLite e frontend HTML/CSS/JS vanilla.
 
-## 🎉 ATUALIZAÇÃO MAIS RECENTE: SOLUÇÃO DEFINITIVA SSL!
+## 🚨 IMPORTANTE: LEIA ISTO PRIMEIRO! 🚨
 
-✅ **TODOS OS REDIRECTS AGORA USAM HTTP EXPLÍCITO!**
+### ⚠️ SE VOCÊ ESTÁ VENDO ERRO SSL (`ERR_SSL_PROTOCOL_ERROR`):
 
-**Nova correção implementada (mais recente):**
-- Todos os redirects JavaScript agora especificam `http://` explicitamente
-- Elimina interferência do HSTS do navegador
-- Login funciona em QUALQUER navegador sem configuração manual
-- Não precisa mais limpar cache/HSTS (mas ajuda)
-- **Usar `http://127.0.0.1:3000` é opção 100% garantida**
+**SOLUÇÃO DEFINITIVA: Use o IP 127.0.0.1 em vez de localhost!**
 
-📖 **Ver:** [SOLUCAO_DEFINITIVA_SSL.md](SOLUCAO_DEFINITIVA_SSL.md) para detalhes técnicos completos
+```
+✅ CORRETO:  http://127.0.0.1:3000/login.html
+❌ EVITAR:   http://localhost:3000/login.html  (causa erro SSL!)
+```
+
+**Por quê?** Navegadores forçam HTTPS no "localhost" devido ao HSTS, mas nosso servidor só aceita HTTP. Usando o IP `127.0.0.1`, o HSTS não se aplica e tudo funciona perfeitamente!
+
+📖 **Guia rápido:** Veja [INICIO_RAPIDO.md](INICIO_RAPIDO.md) para começar em 5 minutos!
 
 ---
 
@@ -39,7 +41,8 @@ npm install
 npm run init-db
 npm start
 
-# Acesse: http://localhost:3000/login.html
+# ⚠️ IMPORTANTE: Use o IP, não localhost!
+# Acesse: http://127.0.0.1:3000/login.html
 # Login: admin@local / admin123
 # Vai direto para o dashboard! ✅
 ```
