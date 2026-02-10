@@ -20,7 +20,7 @@ describe('Auth API', () => {
       await db.connect();
       await db.run('DELETE FROM brute_force_locks');
       // Reset password change flag for testing
-      await db.run(`UPDATE usuarios SET forcar_troca_senha = 0 WHERE email = '${TEST_ADMIN_EMAIL}'`);
+      await db.run('UPDATE usuarios SET forcar_troca_senha = 0 WHERE email = ?', [TEST_ADMIN_EMAIL]);
       await db.close();
     } catch (error) {
       console.error('Error clearing brute force locks:', error);
