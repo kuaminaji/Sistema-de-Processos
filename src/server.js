@@ -112,7 +112,7 @@ app.use('/api/permissoes', csrfProtection, permissoesRoutes);
 app.use('/api/public', publicRoutes); // No CSRF for public routes
 app.use('/api/auditoria', csrfProtection, auditoriaRoutes);
 app.use('/api/backup', csrfProtection, backupRoutes);
-app.use('/api/export', exportRoutes);
+app.use('/api/export', csrfProtection, exportRoutes);
 
 // Rota raiz - redireciona para index.html
 app.get('/', (req, res) => {
