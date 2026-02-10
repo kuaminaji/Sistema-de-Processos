@@ -152,7 +152,8 @@ async function restore(req, res) {
       } else {
         // Criar novo usuário com senha padrão temporária
         const bcrypt = require('bcryptjs');
-        const senhaTemporaria = Math.random().toString(36).slice(-10);
+        const crypto = require('crypto');
+        const senhaTemporaria = crypto.randomBytes(16).toString('hex');
         const senhaHash = await bcrypt.hash(senhaTemporaria, 10);
         
         await db.run(

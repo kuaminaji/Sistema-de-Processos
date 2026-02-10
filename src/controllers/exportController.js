@@ -4,6 +4,9 @@ const { sanitizarInput } = require('../middleware/validators');
 const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 
+// Constantes
+const MAX_PDF_AUDITORIA_RECORDS = 500;
+
 // Helper: Construir cláusula WHERE para filtros
 function buildWhereClause(filters, params, table = 'processos') {
   const whereConditions = [];
@@ -590,7 +593,7 @@ async function exportAuditoriaPDF(req, res) {
       FROM auditoria
       ${whereClause}
       ORDER BY criado_em DESC
-      LIMIT 500
+      LIMIT ${MAX_PDF_AUDITORIA_RECORDS}
     `;
     
     const registros = await db.all(query, params);
