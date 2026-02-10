@@ -100,8 +100,8 @@ const usuariosRoutes = require('./routes/usuarios');
 const permissoesRoutes = require('./routes/permissoes');
 const publicRoutes = require('./routes/public');
 const auditoriaRoutes = require('./routes/auditoria');
-// const backupRoutes = require('./routes/backup');
-// const exportRoutes = require('./routes/export');
+const backupRoutes = require('./routes/backup');
+const exportRoutes = require('./routes/export');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/processos', csrfProtection, processosRoutes);
@@ -111,8 +111,8 @@ app.use('/api/usuarios', csrfProtection, usuariosRoutes);
 app.use('/api/permissoes', csrfProtection, permissoesRoutes);
 app.use('/api/public', publicRoutes); // No CSRF for public routes
 app.use('/api/auditoria', csrfProtection, auditoriaRoutes);
-// app.use('/api/backup', csrfProtection, backupRoutes);
-// app.use('/api/export', exportRoutes);
+app.use('/api/backup', csrfProtection, backupRoutes);
+app.use('/api/export', exportRoutes);
 
 // Rota raiz - redireciona para index.html
 app.get('/', (req, res) => {
