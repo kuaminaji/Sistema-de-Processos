@@ -95,22 +95,22 @@ app.get('/api/csrf-token', csrfProtection, (req, res) => {
 const authRoutes = require('./routes/auth');
 const processosRoutes = require('./routes/processos');
 const clientesRoutes = require('./routes/clientes');
-// const movimentacoesRoutes = require('./routes/movimentacoes');
-// const usuariosRoutes = require('./routes/usuarios');
-// const permissoesRoutes = require('./routes/permissoes');
-// const publicRoutes = require('./routes/public');
-// const auditoriaRoutes = require('./routes/auditoria');
+const movimentacoesRoutes = require('./routes/movimentacoes');
+const usuariosRoutes = require('./routes/usuarios');
+const permissoesRoutes = require('./routes/permissoes');
+const publicRoutes = require('./routes/public');
+const auditoriaRoutes = require('./routes/auditoria');
 // const backupRoutes = require('./routes/backup');
 // const exportRoutes = require('./routes/export');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/processos', csrfProtection, processosRoutes);
 app.use('/api/clientes', csrfProtection, clientesRoutes);
-// app.use('/api/movimentacoes', csrfProtection, movimentacoesRoutes);
-// app.use('/api/usuarios', csrfProtection, usuariosRoutes);
-// app.use('/api/permissoes', csrfProtection, permissoesRoutes);
-// app.use('/api/public', publicRoutes);
-// app.use('/api/auditoria', auditoriaRoutes);
+app.use('/api/movimentacoes', csrfProtection, movimentacoesRoutes);
+app.use('/api/usuarios', csrfProtection, usuariosRoutes);
+app.use('/api/permissoes', csrfProtection, permissoesRoutes);
+app.use('/api/public', publicRoutes); // No CSRF for public routes
+app.use('/api/auditoria', csrfProtection, auditoriaRoutes);
 // app.use('/api/backup', csrfProtection, backupRoutes);
 // app.use('/api/export', exportRoutes);
 
