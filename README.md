@@ -1,391 +1,166 @@
-# ⚖️ Sistema de Processos Judiciais
+# Sistema de Gerenciamento de Processos Jurídicos - Enterprise
 
-Sistema completo de gerenciamento de processos judiciais com backend robusto e frontend moderno.
+Sistema completo de gerenciamento de processos jurídicos para ambiente de produção em rede local (LAN), com backend Node.js + Express + SQLite e frontend HTML/CSS/JS vanilla.
 
-## 📋 Sobre o Projeto
+## 🎯 Características Principais
 
-Sistema desenvolvido para gerenciar processos judiciais, clientes, movimentações e usuários, com recursos de auditoria, exportação e backup. Inclui consulta pública para processos e autenticação segura com suporte a 2FA.
+### Segurança Enterprise
+- ✅ Autenticação segura com bcrypt + salt
+- ✅ 2FA/TOTP opcional com QR Code  
+- ✅ Proteção contra brute force (bloqueio progressivo)
+- ✅ Política de senha forte (expiração, histórico, complexidade)
+- ✅ CSRF protection em todas as mutações
+- ✅ Rate limiting global e por rota
+- ✅ Helmet + CSP configurado
+- ✅ Proteção contra SQL injection (prepared statements)
+- ✅ Proteção contra XSS (sanitização de inputs)
+- ✅ Trilha de auditoria completa
 
-## 🚀 Tecnologias
+### Funcionalidades
 
-### Backend
-- **Node.js** com Express
-- **SQLite** para banco de dados
-- **JWT** para autenticação
-- **Speakeasy** para 2FA
-- **bcrypt** para hash de senhas
-- **CSRF Protection**
-- **Rate Limiting**
+#### 🔐 Área Administrativa (Com Login)
+- Dashboard interativo com estatísticas em tempo real
+- Gerenciamento de Processos (CRUD completo)
+- Registro de Movimentações (histórico detalhado)
+- Gerenciamento de Clientes (CPF, WhatsApp, contatos)
+- Gestão de Usuários (apenas admin)
+- Gestão de Permissões RBAC granular
+- Sidebar moderna e responsiva
+- Busca avançada com filtros
 
-### Frontend
-- **HTML5** semântico
-- **CSS3** com design responsivo
-- **JavaScript** vanilla (sem frameworks)
-- **Canvas API** para gráficos
-- **Mobile-first** design
+#### 🔍 Área Pública (Sem Login)
+- Consulta por CPF do cliente
+- Consulta por número do processo
+- Histórico completo de movimentações
+- Interface limpa e intuitiva
+
+#### 👥 Gerenciamento de Clientes
+- Cadastro completo (CPF, e-mail, telefones)
+- Integração WhatsApp (link direto wa.me)
+- Validação de CPF (formato + dígitos verificadores)
+- Vinculação a processos
+
+## 🚀 Instalação Rápida
+
+```bash
+# Clone o repositório
+git clone https://github.com/kuaminaji/Sistema-de-Processos.git
+cd Sistema-de-Processos
+
+# Instale as dependências
+npm install
+
+# Configure o ambiente
+cp .env.example .env
+
+# Inicialize o banco de dados
+npm run init-db
+
+# Inicie o servidor
+npm start
+```
+
+Acesse: **http://localhost:3000**
+
+**Credenciais padrão:**
+- Email: `admin@local`
+- Senha: `admin123`
+
+⚠️ **Altere a senha no primeiro login!**
 
 ## 📁 Estrutura do Projeto
 
 ```
 Sistema-de-Processos/
-├── src/                          # Backend source
-│   ├── controllers/              # Controladores da API
-│   ├── middleware/               # Middlewares (auth, csrf, etc)
-│   ├── routes/                   # Rotas da API
-│   ├── services/                 # Lógica de negócio
-│   ├── utils/                    # Utilitários
-│   ├── database.js              # Configuração do banco
-│   └── server.js                # Entry point do servidor
-├── public/                       # Frontend
-│   ├── css/
-│   │   └── styles.css           # Estilos completos
-│   ├── js/
-│   │   ├── app.js               # Utilitários gerais
-│   │   ├── admin.js             # Área administrativa
-│   │   └── consulta.js          # Consulta pública
-│   ├── index.html               # Página inicial
-│   ├── login.html               # Login
-│   ├── admin.html               # Painel admin
-│   ├── consulta.html            # Consulta pública
-│   ├── trocar-senha.html        # Trocar senha
-│   ├── setup-2fa.html           # Configurar 2FA
-│   └── README.md                # Documentação frontend
-├── tests/                        # Testes automatizados
-├── docs/                         # Documentação adicional
-├── package.json                  # Dependências
-└── README.md                     # Este arquivo
+├── src/
+│   ├── controllers/          # Lógica de negócio
+│   ├── routes/               # Definição de rotas
+│   ├── middleware/           # Middlewares (auth, CSRF, etc)
+│   ├── database/             # Camada de banco de dados
+│   └── server.js             # Servidor Express
+├── public/                   # Frontend
+│   ├── css/                  # Estilos responsivos
+│   ├── js/                   # JavaScript vanilla
+│   └── *.html                # Páginas HTML
+├── tests/                    # Testes automatizados
+├── data/                     # Banco de dados SQLite
+└── README.md
 ```
 
-## 🔧 Instalação
+## 🌐 Deploy em Produção (LAN com HTTPS)
 
-### Pré-requisitos
-- Node.js 14+ 
-- npm ou yarn
+### Nginx como Proxy Reverso
 
-### Passo a Passo
-
-```bash
-# 1. Clone o repositório
-git clone https://github.com/kuaminaji/Sistema-de-Processos.git
-cd Sistema-de-Processos
-
-# 2. Instale as dependências
-npm install
-
-# 3. Configure o banco de dados
-npm run setup-db
-
-# 4. Inicie o servidor
-npm start
-
-# Servidor rodando em http://localhost:3000
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name processos.empresa.local;
+    
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+    
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
 ```
 
-### Desenvolvimento
-
-```bash
-# Modo desenvolvimento (com nodemon)
-npm run dev
-
-# Executar testes
-npm test
-
-# Executar testes com coverage
-npm run test:coverage
+Configure o .env para produção:
+```env
+NODE_ENV=production
+SESSION_SECRET=gere-uma-string-aleatoria-de-64-caracteres
+COOKIE_SECURE=true
+TRUST_PROXY=1
 ```
 
-## 🌐 Acessando o Sistema
+## 📖 Documentação
 
-### Frontend
-- **Página inicial**: http://localhost:8080
-- **Login**: http://localhost:8080/login.html
-- **Admin**: http://localhost:8080/admin.html
-- **Consulta pública**: http://localhost:8080/consulta.html
+- `API_REFERENCE.md`: Referência completa da API
+- `CONTROLLERS_SUMMARY.md`: Resumo dos controllers  
+- `public/README.md`: Documentação do frontend
+- `TESTING_GUIDE.md`: Guia de testes
 
-### Servidor Frontend
+## 🔒 Segurança
 
-```bash
-# Opção 1: http-server (recomendado)
-npm install -g http-server
-http-server public -p 8080
+- Autenticação bcrypt
+- 2FA/TOTP opcional
+- Proteção brute force
+- CSRF protection
+- Rate limiting
+- SQL injection prevention
+- XSS protection
+- Trilha de auditoria completa
 
-# Opção 2: Python
-cd public && python3 -m http.server 8080
+## 📊 Funcionalidades Completas
 
-# Opção 3: PHP
-cd public && php -S localhost:8080
-```
-
-## 👤 Credenciais Padrão
-
-Após o setup do banco de dados:
-
-- **Email**: admin@sistema.com
-- **Senha**: Admin@123
-- **Tipo**: Administrador
-
-## 📚 Documentação
-
-- **[API Reference](API_REFERENCE.md)** - Documentação completa da API
-- **[Controllers Summary](CONTROLLERS_SUMMARY.md)** - Resumo dos controladores
-- **[Implementation Summary](IMPLEMENTATION_SUMMARY.md)** - Resumo da implementação
-- **[Frontend README](public/README.md)** - Documentação do frontend
-- **[Testing Guide](TESTING_GUIDE.md)** - Guia de testes
-
-## 🎯 Funcionalidades
-
-### 🔐 Autenticação e Segurança
-- [x] Login com email e senha
-- [x] Autenticação 2FA (TOTP)
-- [x] Hash seguro de senhas (bcrypt)
-- [x] Proteção CSRF
-- [x] Rate limiting
-- [x] Sessões seguras
-- [x] Troca de senha
-- [x] Logout
-
-### 📋 Gestão de Processos
-- [x] CRUD completo de processos
-- [x] Busca e filtros avançados
-- [x] Listagem paginada
-- [x] Estatísticas de processos
-- [x] Vínculo com clientes
-- [x] Gestão de status
-
-### 👥 Gestão de Clientes
-- [x] CRUD completo de clientes
-- [x] Validação de CPF
-- [x] Busca por nome/CPF
-- [x] Vínculo com processos
-- [x] Dados de contato
-
-### 📝 Movimentações
-- [x] Criar movimentações por processo
-- [x] Histórico completo
-- [x] Ordenação cronológica
-- [x] Tipos de movimentação
-
-### 👤 Gestão de Usuários (Admin)
-- [x] CRUD de usuários
-- [x] Controle de roles (admin/user)
-- [x] Ativar/desativar usuários
-- [x] Gestão de permissões
-- [x] Visualização de 2FA status
-
-### 🔐 Permissões (Admin)
-- [x] Sistema granular de permissões
-- [x] Atribuição por usuário
-- [x] Permissões disponíveis:
-  - Gerenciar usuários
-  - Gerenciar permissões
-  - Visualizar auditoria
-  - Exportar dados
-  - Backup e restauração
-
-### 📊 Auditoria (Admin)
-- [x] Log de todas as operações
-- [x] Rastreamento por usuário
-- [x] Timestamp de ações
-- [x] Detalhes de mudanças
-- [x] Filtros e busca
-- [x] Exportação de logs
-
-### 🌍 Consulta Pública
-- [x] Consulta por CPF (sem login)
-- [x] Consulta por número do processo
-- [x] Visualização de processos
-- [x] Histórico de movimentações
-
-### 📤 Exportação
-- [x] Processos: CSV, Excel, PDF
-- [x] Auditoria: CSV, Excel, PDF
-- [x] Backup completo (JSON)
-- [x] Restauração de backup
-
-### 📱 Interface Responsiva
-- [x] Design mobile-first
-- [x] 9 breakpoints (320px a 1600px+)
-- [x] Sidebar colapsável
-- [x] Tabelas responsivas
-- [x] Formulários adaptáveis
-- [x] Touch-friendly
-
-### 🎨 UI/UX
-- [x] Dashboard com estatísticas
-- [x] Gráficos interativos
-- [x] Toast notifications
-- [x] Modais para formulários
-- [x] Loading states
-- [x] Empty states
-- [x] Indicadores visuais
-- [x] Feedback em tempo real
-
-## 🔌 API Endpoints
-
-### Autenticação
-```
-POST   /api/auth/login              # Login
-POST   /api/auth/logout             # Logout
-GET    /api/auth/me                 # Usuário atual
-POST   /api/auth/trocar-senha       # Trocar senha
-POST   /api/auth/2fa/setup          # Setup 2FA
-POST   /api/auth/2fa/enable         # Ativar 2FA
-POST   /api/auth/2fa/disable        # Desativar 2FA
-GET    /api/auth/csrf-token         # Obter CSRF token
-```
-
-### Processos
-```
-GET    /api/processos/list          # Listar
-GET    /api/processos/stats         # Estatísticas
-GET    /api/processos/:id           # Obter um
-POST   /api/processos/create        # Criar
-PUT    /api/processos/:id           # Atualizar
-DELETE /api/processos/:id           # Excluir
-GET    /api/processos/search        # Buscar
-```
-
-### Clientes
-```
-GET    /api/clientes/list           # Listar
-GET    /api/clientes/:id            # Obter um
-POST   /api/clientes/create         # Criar
-PUT    /api/clientes/:id            # Atualizar
-DELETE /api/clientes/:id            # Excluir
-GET    /api/clientes/search         # Buscar
-```
-
-### Movimentações
-```
-GET    /api/movimentacoes/list/:processo_id    # Listar por processo
-POST   /api/movimentacoes/create               # Criar
-PUT    /api/movimentacoes/:id                  # Atualizar
-DELETE /api/movimentacoes/:id                  # Excluir
-```
-
-### Usuários (Admin)
-```
-GET    /api/usuarios/list           # Listar
-GET    /api/usuarios/:id            # Obter um
-POST   /api/usuarios/create         # Criar
-PUT    /api/usuarios/:id            # Atualizar
-DELETE /api/usuarios/:id            # Excluir
-```
-
-### Permissões (Admin)
-```
-GET    /api/permissoes/list                    # Listar permissões
-GET    /api/permissoes/getUserPermissions/:id  # Obter por usuário
-POST   /api/permissoes/updateUserPermissions   # Atualizar
-```
-
-### Auditoria (Admin)
-```
-GET    /api/auditoria/list          # Listar logs
-GET    /api/auditoria/stats         # Estatísticas
-GET    /api/auditoria/sla           # SLA
-GET    /api/auditoria/anomalias     # Anomalias
-```
-
-### Público (Sem autenticação)
-```
-GET    /api/public/consultarPorCPF/:cpf        # Consultar por CPF
-GET    /api/public/consultarPorNumero/:numero  # Consultar por número
-```
-
-### Export
-```
-GET    /api/export/processos/csv    # CSV
-GET    /api/export/processos/excel  # Excel
-GET    /api/export/processos/pdf    # PDF
-GET    /api/export/auditoria/csv    # CSV
-GET    /api/export/auditoria/excel  # Excel
-GET    /api/export/auditoria/pdf    # PDF
-```
-
-### Backup
-```
-POST   /api/backup/backup           # Criar backup
-POST   /api/backup/restore          # Restaurar
-```
+✅ Backend 100% implementado
+✅ Frontend 100% implementado  
+✅ Autenticação e segurança
+✅ Gestão de processos jurídicos
+✅ Gestão de clientes
+✅ Gestão de usuários e permissões
+✅ Consulta pública
+✅ Backup e restauração
+✅ Exportação (PDF, Excel, CSV)
+✅ Auditoria e SLA
+✅ Design responsivo (9 breakpoints)
+✅ Documentação completa
 
 ## 🧪 Testes
 
 ```bash
-# Executar todos os testes
-npm test
-
-# Testes com cobertura
-npm run test:coverage
-
-# Testes de integração
-npm run test:integration
-
-# Testes E2E
-npm run test:e2e
+npm test              # Executar testes
+npm run test:watch    # Modo watch
+npm run test:coverage # Cobertura
 ```
 
-## 🔒 Segurança
+## 📄 Licença
 
-- ✅ Autenticação JWT
-- ✅ 2FA com TOTP
-- ✅ Proteção CSRF
-- ✅ Rate limiting
-- ✅ Hash seguro de senhas (bcrypt)
-- ✅ Validação de inputs
-- ✅ SQL injection prevention (parametrized queries)
-- ✅ XSS prevention
-- ✅ Sessões seguras
-- ✅ HTTPS ready
-
-## 📊 Banco de Dados
-
-### Schema
-
-```sql
--- Usuários
-usuarios (id, nome, email, senha, role, twoFactorSecret, twoFactorEnabled, ativo)
-
--- Clientes
-clientes (id, nome, cpf, email, telefone, endereco)
-
--- Processos
-processos (id, numero, tipo, cliente_id, status, vara, comarca, data_distribuicao, valor_causa, partes, assunto)
-
--- Movimentações
-movimentacoes (id, processo_id, tipo, data, descricao)
-
--- Permissões
-permissoes (id, usuario_id, permissao)
-
--- Auditoria
-auditoria (id, usuario_id, acao, tabela, registro_id, data_hora, detalhes)
-```
-
-## 🤝 Contribuindo
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/MinhaFeature`)
-3. Commit suas mudanças (`git commit -m 'Add: minha feature'`)
-4. Push para a branch (`git push origin feature/MinhaFeature`)
-5. Abra um Pull Request
-
-## 📝 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo LICENSE para mais detalhes.
-
-## 👨‍💻 Autor
-
-**kuaminaji**
-- GitHub: [@kuaminaji](https://github.com/kuaminaji)
-
-## 🙏 Agradecimentos
-
-- Node.js Community
-- Express.js
-- SQLite
-- Todos os contribuidores
+ISC License
 
 ---
 
-**Desenvolvido com ❤️ para facilitar a gestão de processos judiciais**
+**v1.0.0** - Sistema Enterprise pronto para produção
