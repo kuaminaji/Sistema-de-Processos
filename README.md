@@ -2,6 +2,22 @@
 
 Sistema completo de gerenciamento de processos jurídicos para ambiente de produção em rede local (LAN), com backend Node.js + Express + SQLite e frontend HTML/CSS/JS vanilla.
 
+## 🎉 CORREÇÃO DEFINITIVA APLICADA
+
+✅ **O sistema agora funciona em QUALQUER NAVEGADOR**, mesmo que tenha sido usado antes!
+
+**Problema Resolvido**: Erro SSL_PROTOCOL_ERROR quando browser força HTTPS
+
+**Solução**: Detector de protocolo automático que:
+- Detecta acesso via HTTPS e redireciona para HTTP
+- Mostra tela profissional de redirecionamento
+- Funciona automaticamente sem intervenção manual
+- **Não é mais necessário limpar HSTS ou cache!**
+
+📖 Ver `CORRECAO_DEFINITIVA.md` para detalhes completos
+
+---
+
 ## 🎯 Características Principais
 
 ### Segurança Enterprise
