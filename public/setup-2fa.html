@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurar 2FA - Sistema de Processos</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <h1>🔒 Autenticação de Dois Fatores</h1>
+                <p>Configure a segurança adicional da sua conta</p>
+            </div>
+
+            <div id="setupContent">
+                <div id="statusSection" class="mb-4">
+                    <div class="alert alert-info">
+                        <strong>Status:</strong> <span id="statusText">Carregando...</span>
+                    </div>
+                </div>
+
+                <!-- Setup 2FA Section -->
+                <div id="setupSection" style="display: none;">
+                    <h3 class="mb-3">Configurar 2FA</h3>
+                    
+                    <div class="alert alert-warning mb-3">
+                        <strong>⚠️ Importante:</strong> Salve o código de backup em um local seguro. 
+                        Você precisará dele se perder o acesso ao seu aplicativo autenticador.
+                    </div>
+
+                    <ol style="margin-bottom: var(--spacing-lg); padding-left: var(--spacing-xl);">
+                        <li>Instale um aplicativo autenticador (Google Authenticator, Authy, etc.)</li>
+                        <li>Escaneie o QR Code abaixo com o aplicativo</li>
+                        <li>Digite o código de 6 dígitos gerado pelo aplicativo</li>
+                    </ol>
+
+                    <div id="qrCodeContainer" class="qr-code-container">
+                        <!-- QR Code will be inserted here -->
+                    </div>
+
+                    <div id="secretContainer" class="alert alert-info text-center mb-3">
+                        <strong>Código manual:</strong><br>
+                        <code id="secretCode" style="font-size: 1.1em; letter-spacing: 2px;"></code>
+                    </div>
+
+                    <form id="enable2faForm">
+                        <div class="form-group">
+                            <label for="verifyToken" class="form-label required">Código de Verificação</label>
+                            <input 
+                                type="text" 
+                                id="verifyToken" 
+                                class="form-control" 
+                                placeholder="000000"
+                                maxlength="6"
+                                pattern="[0-9]{6}"
+                                required
+                                autocomplete="one-time-code"
+                            >
+                            <span class="form-text">Digite o código de 6 dígitos do seu aplicativo</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-block" id="enableBtn">
+                            <span id="enableBtnText">✓ Ativar 2FA</span>
+                            <span id="enableBtnLoading" style="display: none;" class="loading"></span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Disable 2FA Section -->
+                <div id="disableSection" style="display: none;">
+                    <h3 class="mb-3">Desativar 2FA</h3>
+                    
+                    <div class="alert alert-success mb-3">
+                        ✓ A autenticação de dois fatores está <strong>ativada</strong> na sua conta.
+                    </div>
+
+                    <p class="text-secondary mb-3">
+                        Desativar o 2FA tornará sua conta menos segura. 
+                        Você não precisará mais digitar um código ao fazer login.
+                    </p>
+
+                    <form id="disable2faForm">
+                        <div class="form-group">
+                            <label for="disableToken" class="form-label required">Código de Verificação Atual</label>
+                            <input 
+                                type="text" 
+                                id="disableToken" 
+                                class="form-control" 
+                                placeholder="000000"
+                                maxlength="6"
+                                pattern="[0-9]{6}"
+                                required
+                                autocomplete="one-time-code"
+                            >
+                            <span class="form-text">Digite o código atual do seu aplicativo para confirmar</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-danger btn-block" id="disableBtn">
+                            <span id="disableBtnText">✗ Desativar 2FA</span>
+                            <span id="disableBtnLoading" style="display: none;" class="loading"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="auth-footer">
+                <a href="/admin.html" class="text-primary">Voltar ao painel</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        const statusText = document.getElementById('statusText');
+        const setupSection = document.getElementById('setupSection');
+        const disableSection = document.getElementById('disableSection');
+        const qrCodeContainer = document.getElementById('qrCodeContainer');
+        const secretCode = document.getElementById('secretCode');
+
+        // Load current 2FA status
+        async function loadStatus() {
+            try {
+                const user = await checkAuth();
+                if (!user) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+
+                if (user.twoFactorEnabled) {
+                    statusText.textContent = '2FA está ativado';
+                    disableSection.style.display = 'block';
+                    setupSection.style.display = 'none';
+                } else {
+                    statusText.textContent = '2FA não está ativado';
+                    await setup2FA();
+                }
+            } catch (error) {
+                console.error('Error loading status:', error);
+                showToast('Erro ao carregar status', 'error');
+            }
+        }
+
+        // Setup 2FA
+        async function setup2FA() {
+            try {
+                const response = await api('/api/auth/2fa/setup', 'POST');
+                
+                if (response.success) {
+                    // Show QR code
+                    qrCodeContainer.innerHTML = `<img src="${response.qrCode}" alt="QR Code 2FA">`;
+                    secretCode.textContent = response.secret;
+                    
+                    setupSection.style.display = 'block';
+                    disableSection.style.display = 'none';
+                } else {
+                    showToast(response.message || 'Erro ao configurar 2FA', 'error');
+                }
+            } catch (error) {
+                console.error('Error setting up 2FA:', error);
+                showToast('Erro ao configurar 2FA', 'error');
+            }
+        }
+
+        // Enable 2FA form
+        document.getElementById('enable2faForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const token = document.getElementById('verifyToken').value;
+            const btn = document.getElementById('enableBtn');
+            const btnText = document.getElementById('enableBtnText');
+            const btnLoading = document.getElementById('enableBtnLoading');
+
+            btn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline-block';
+
+            try {
+                const response = await api('/api/auth/2fa/enable', 'POST', { token });
+
+                if (response.success) {
+                    showToast('2FA ativado com sucesso!', 'success');
+                    setTimeout(() => {
+                        loadStatus();
+                    }, 1000);
+                } else {
+                    showToast(response.message || 'Código inválido', 'error');
+                }
+            } catch (error) {
+                console.error('Error enabling 2FA:', error);
+                showToast(error.message || 'Erro ao ativar 2FA', 'error');
+            } finally {
+                btn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoading.style.display = 'none';
+            }
+        });
+
+        // Disable 2FA form
+        document.getElementById('disable2faForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const token = document.getElementById('disableToken').value;
+            const btn = document.getElementById('disableBtn');
+            const btnText = document.getElementById('disableBtnText');
+            const btnLoading = document.getElementById('disableBtnLoading');
+
+            if (!confirm('Tem certeza que deseja desativar o 2FA? Isso tornará sua conta menos segura.')) {
+                return;
+            }
+
+            btn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline-block';
+
+            try {
+                const response = await api('/api/auth/2fa/disable', 'POST', { token });
+
+                if (response.success) {
+                    showToast('2FA desativado com sucesso!', 'success');
+                    setTimeout(() => {
+                        loadStatus();
+                    }, 1000);
+                } else {
+                    showToast(response.message || 'Código inválido', 'error');
+                }
+            } catch (error) {
+                console.error('Error disabling 2FA:', error);
+                showToast(error.message || 'Erro ao desativar 2FA', 'error');
+            } finally {
+                btn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoading.style.display = 'none';
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadStatus);
+    </script>
+</body>
+</html>

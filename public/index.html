@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de Gerenciamento de Processos Judiciais">
+    <title>Sistema de Processos - Início</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <h1>⚖️ Sistema de Processos</h1>
+                <p>Gerenciamento de Processos Judiciais</p>
+            </div>
+
+            <div id="loadingState" class="text-center" style="display: none;">
+                <div class="loading-spinner" style="margin: 0 auto;"></div>
+                <p class="text-secondary mt-2">Verificando autenticação...</p>
+            </div>
+
+            <div id="publicOptions">
+                <div class="text-center mb-4">
+                    <h2 class="text-xl mb-2">Bem-vindo</h2>
+                    <p class="text-secondary text-sm">Escolha uma opção para continuar</p>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+                    <a href="/login.html" class="btn btn-primary btn-lg btn-block">
+                        🔐 Acessar Sistema
+                    </a>
+                    <a href="/consulta.html" class="btn btn-outline btn-lg btn-block">
+                        🔍 Consulta Pública
+                    </a>
+                </div>
+
+                <div class="auth-divider">
+                    <span>Informações</span>
+                </div>
+
+                <div class="text-center">
+                    <p class="text-sm text-secondary">
+                        Sistema seguro de gerenciamento de processos judiciais.<br>
+                        Para acesso completo, faça login com suas credenciais.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        // Check if user is already logged in
+        document.addEventListener('DOMContentLoaded', async () => {
+            const loadingState = document.getElementById('loadingState');
+            const publicOptions = document.getElementById('publicOptions');
+
+            loadingState.style.display = 'block';
+            publicOptions.style.display = 'none';
+
+            try {
+                const user = await checkAuth();
+                if (user) {
+                    // User is logged in, redirect to admin
+                    window.location.href = '/admin.html';
+                } else {
+                    // Not logged in, show options
+                    loadingState.style.display = 'none';
+                    publicOptions.style.display = 'block';
+                }
+            } catch (error) {
+                // Error checking auth, show options
+                loadingState.style.display = 'none';
+                publicOptions.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

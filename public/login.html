@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema de Processos</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <h1>⚖️ Sistema de Processos</h1>
+                <p>Faça login para continuar</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email" class="form-label required">E-mail</label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        class="form-control" 
+                        placeholder="seu@email.com"
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="senha" class="form-label required">Senha</label>
+                    <input 
+                        type="password" 
+                        id="senha" 
+                        name="senha" 
+                        class="form-control" 
+                        placeholder="••••••••"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <div id="twoFactorGroup" class="form-group" style="display: none;">
+                    <label for="token2fa" class="form-label required">Código 2FA</label>
+                    <input 
+                        type="text" 
+                        id="token2fa" 
+                        name="token2fa" 
+                        class="form-control" 
+                        placeholder="000000"
+                        maxlength="6"
+                        pattern="[0-9]{6}"
+                        autocomplete="one-time-code"
+                    >
+                    <span class="form-text">Digite o código de 6 dígitos do seu aplicativo autenticador</span>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input type="checkbox" id="remember" name="remember" class="form-check-input">
+                    <label for="remember" class="form-check-label">Lembrar-me neste dispositivo</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg btn-block" id="loginBtn">
+                    <span id="loginBtnText">Entrar</span>
+                    <span id="loginBtnLoading" style="display: none;" class="loading"></span>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <a href="/consulta.html" class="text-primary">Consulta pública</a>
+                <span class="text-muted"> | </span>
+                <a href="/index.html" class="text-primary">Voltar</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        const form = document.getElementById('loginForm');
+        const twoFactorGroup = document.getElementById('twoFactorGroup');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginBtnText = document.getElementById('loginBtnText');
+        const loginBtnLoading = document.getElementById('loginBtnLoading');
+
+        let requires2FA = false;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            const token2fa = document.getElementById('token2fa').value;
+
+            // Disable button and show loading
+            loginBtn.disabled = true;
+            loginBtnText.style.display = 'none';
+            loginBtnLoading.style.display = 'inline-block';
+
+            try {
+                const data = { email, senha };
+                
+                // Add 2FA token if required
+                if (requires2FA && token2fa) {
+                    data.token2fa = token2fa;
+                }
+
+                const response = await api('/api/auth/login', 'POST', data);
+
+                if (response.requires2FA) {
+                    // Show 2FA input
+                    requires2FA = true;
+                    twoFactorGroup.style.display = 'block';
+                    document.getElementById('token2fa').focus();
+                    showToast('Digite o código 2FA', 'info');
+                } else if (response.success) {
+                    showToast('Login realizado com sucesso!', 'success');
+                    
+                    // Save remember preference
+                    if (document.getElementById('remember').checked) {
+                        localStorage.setItem('rememberLogin', 'true');
+                    }
+                    
+                    // Redirect to admin
+                    setTimeout(() => {
+                        window.location.href = '/admin.html';
+                    }, 500);
+                } else {
+                    showToast(response.message || 'Erro ao fazer login', 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showToast(error.message || 'Erro ao fazer login. Verifique suas credenciais.', 'error');
+                
+                // Reset 2FA if error
+                if (requires2FA) {
+                    document.getElementById('token2fa').value = '';
+                }
+            } finally {
+                // Re-enable button
+                loginBtn.disabled = false;
+                loginBtnText.style.display = 'inline';
+                loginBtnLoading.style.display = 'none';
+            }
+        });
+
+        // Check if already logged in
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const user = await checkAuth();
+                if (user) {
+                    window.location.href = '/admin.html';
+                }
+            } catch (error) {
+                // Not logged in, stay on login page
+            }
+        });
+    </script>
+</body>
+</html>
