@@ -152,7 +152,7 @@ async function start() {
       console.log(`\n⚠️  Credenciais padrão:`);
       console.log(`   Email: ${process.env.ADMIN_EMAIL || 'admin@local'}`);
       console.log(`   Senha: ${process.env.ADMIN_PASSWORD || 'admin123'}`);
-      console.log(`   (Altere a senha no primeiro login!)\n`);
+      console.log(`   💡 Troque a senha quando quiser através do menu Perfil\n`);
     });
   } catch (error) {
     console.error('❌ Erro ao iniciar servidor:', error);

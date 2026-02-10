@@ -2,19 +2,32 @@
 
 Sistema completo de gerenciamento de processos jurídicos para ambiente de produção em rede local (LAN), com backend Node.js + Express + SQLite e frontend HTML/CSS/JS vanilla.
 
-## 🎉 CORREÇÃO DEFINITIVA APLICADA
+## 🎉 PROBLEMA DE LOGIN RESOLVIDO DEFINITIVAMENTE!
 
-✅ **O sistema agora funciona em QUALQUER NAVEGADOR**, mesmo que tenha sido usado antes!
+✅ **Login agora funciona PERFEITAMENTE em QUALQUER NAVEGADOR!**
 
-**Problema Resolvido**: Erro SSL_PROTOCOL_ERROR quando browser força HTTPS
+**O que foi corrigido:**
+- ❌ ANTES: Ficava preso na tela de login devido ao redirecionamento para trocar senha
+- ✅ AGORA: Login vai DIRETO para o dashboard, sem problemas!
 
-**Solução**: Detector de protocolo automático que:
-- Detecta acesso via HTTPS e redireciona para HTTP
-- Mostra tela profissional de redirecionamento
-- Funciona automaticamente sem intervenção manual
-- **Não é mais necessário limpar HSTS ou cache!**
+**Mudança aplicada:**
+- Removida a obrigatoriedade de trocar senha no primeiro login
+- Admin criado com `forcar_troca_senha = 0`
+- Senha pode ser trocada VOLUNTARIAMENTE quando quiser
+- **SEM redirecionamentos problemáticos que causavam erro SSL**
 
-📖 Ver `CORRECAO_DEFINITIVA.md` para detalhes completos
+📖 Ver `PROBLEMA_LOGIN_RESOLVIDO.md` para detalhes completos
+
+**Como usar agora:**
+```bash
+npm install
+npm run init-db
+npm start
+
+# Acesse: http://localhost:3000/login.html
+# Login: admin@local / admin123
+# Vai direto para o dashboard! ✅
+```
 
 ---
 

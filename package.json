@@ -7,6 +7,7 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "init-db": "node src/database/init.js",
+    "fix-admin": "node fix-admin-password.js",
     "test": "NODE_ENV=test jest --testTimeout=10000",
     "test:watch": "NODE_ENV=test jest --watch",
     "test:coverage": "NODE_ENV=test jest --coverage"

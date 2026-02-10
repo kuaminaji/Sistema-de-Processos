@@ -262,11 +262,11 @@ async function bootstrapAdmin(db) {
   const senhaExpiraEm = new Date();
   senhaExpiraEm.setDate(senhaExpiraEm.getDate() + passwordExpiryDays);
   
-  // Inserir admin
+  // Inserir admin (SEM forçar troca de senha no primeiro login)
   const result = await db.run(
     `INSERT INTO usuarios (nome, email, senha_hash, perfil, ativo, forcar_troca_senha, senha_expira_em)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    ['Administrador', adminEmail, senhaHash, 'admin', 1, 1, senhaExpiraEm.toISOString()]
+    ['Administrador', adminEmail, senhaHash, 'admin', 1, 0, senhaExpiraEm.toISOString()]
   );
   
   const adminId = result.lastID;
@@ -287,7 +287,8 @@ async function bootstrapAdmin(db) {
   );
   
   console.log(`✅ Admin bootstrap criado com sucesso (email: ${adminEmail})`);
-  console.log(`⚠️  IMPORTANTE: Troque a senha no primeiro login!`);
+  console.log(`ℹ️  Credenciais: ${adminEmail} / ${adminPassword}`);
+  console.log(`ℹ️  Você pode trocar a senha quando quiser através do menu Perfil`);
 }
 
 // Executar se chamado diretamente
