@@ -129,7 +129,7 @@ async function loadDashboard() {
         
         // Load recent activity (using audit log)
         try {
-            const auditData = await api('/api/auditoria/list?limit=5');
+            const auditData = await api('/api/auditoria?page=1&perPage=5');
             renderRecentActivity(auditData.logs || []);
         } catch (error) {
             console.error('Error loading recent activity:', error);
@@ -260,7 +260,7 @@ async function fetchProcessos() {
     showLoading();
     
     try {
-        const response = await api('/api/processos/list');
+        const response = await api('/api/processos?page=1&perPage=50');
         processosData = response.processos || [];
         renderProcessosTable();
     } catch (error) {
@@ -394,7 +394,7 @@ async function showProcessoForm(processoId = null) {
     // Load clientes for dropdown
     let clientes = [];
     try {
-        const response = await api('/api/clientes/list');
+        const response = await api('/api/clientes?page=1&perPage=50');
         clientes = response.clientes || [];
     } catch (error) {
         console.error('Error loading clientes:', error);
@@ -591,7 +591,7 @@ async function fetchClientes() {
     showLoading();
     
     try {
-        const response = await api('/api/clientes/list');
+        const response = await api('/api/clientes?page=1&perPage=50');
         clientesData = response.clientes || [];
         renderClientesTable();
     } catch (error) {
@@ -836,7 +836,7 @@ async function fetchUsuarios() {
     showLoading();
     
     try {
-        const response = await api('/api/usuarios/list');
+        const response = await api('/api/usuarios?page=1&perPage=50');
         renderUsuariosTable(response.usuarios || []);
     } catch (error) {
         console.error('Error fetching usuarios:', error);
@@ -1023,8 +1023,8 @@ async function fetchPermissoes() {
     
     try {
         const [permissoesResp, usuariosResp] = await Promise.all([
-            api('/api/permissoes/list'),
-            api('/api/usuarios/list')
+            api('/api/permissoes'),
+            api('/api/usuarios?page=1&perPage=50')
         ]);
         
         renderPermissoes(permissoesResp.permissoes || [], usuariosResp.usuarios || []);
@@ -1173,7 +1173,7 @@ async function fetchAuditoria() {
     showLoading();
     
     try {
-        const response = await api('/api/auditoria/list?limit=100');
+        const response = await api('/api/auditoria?page=1&perPage=100');
         renderAuditoriaTable(response.logs || []);
     } catch (error) {
         console.error('Error fetching auditoria:', error);
