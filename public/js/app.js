@@ -73,12 +73,29 @@ async function api(url, method = 'GET', body = null) {
 async function checkAuth() {
     try {
         const response = await api('/api/auth/me');
-        // The API returns response.data.usuario, not response.user
+        // The API returns response.data.usuario and response.data.permissoes
         if (response.success && response.data && response.data.usuario) {
-            return response.data.usuario;
+            const usuario = response.data.usuario;
+            const permissoes = response.data.permissoes || [];
+            
+            // Normalize data structure to match frontend expectations
+            // Backend returns "perfil", frontend expects "role"
+            // Backend returns array of objects with "codigo", frontend expects array of strings
+            return {
+                id: usuario.id,
+                nome: usuario.nome,
+                email: usuario.email,
+                perfil: usuario.perfil,  // Keep original
+                role: usuario.perfil,     // Map perfil -> role for frontend compatibility
+                twofa_enabled: usuario.twofa_enabled,
+                ultimo_login_em: usuario.ultimo_login_em,
+                criado_em: usuario.criado_em,
+                permissions: permissoes.map(p => p.codigo || p)  // Extract codigo from each permission
+            };
         }
         return null;
     } catch (error) {
+        console.error('checkAuth error:', error);
         return null;
     }
 }
