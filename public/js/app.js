@@ -73,7 +73,11 @@ async function api(url, method = 'GET', body = null) {
 async function checkAuth() {
     try {
         const response = await api('/api/auth/me');
-        return response.user || null;
+        // The API returns response.data.usuario, not response.user
+        if (response.success && response.data && response.data.usuario) {
+            return response.data.usuario;
+        }
+        return null;
     } catch (error) {
         return null;
     }

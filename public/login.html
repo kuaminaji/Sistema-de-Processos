@@ -135,6 +135,8 @@
                 }
 
                 const response = await api('/api/auth/login', 'POST', data);
+                
+                console.log('Login response:', response);
 
                 if (response.requires2FA) {
                     // Show 2FA input
@@ -143,6 +145,7 @@
                     document.getElementById('token2fa').focus();
                     showToast('Digite o código 2FA', 'info');
                 } else if (response.success) {
+                    console.log('Login successful, preparing redirect...');
                     showToast('Login realizado com sucesso!', 'success');
                     
                     // Save remember preference
@@ -150,14 +153,20 @@
                         localStorage.setItem('rememberLogin', 'true');
                     }
                     
-                    // Redirect to admin - FORCE HTTP protocol to prevent HSTS upgrade
-                    setTimeout(() => {
+                    // IMMEDIATE redirect - no setTimeout to prevent any interference
+                    try {
                         const protocol = 'http:';
                         const host = window.location.host;
                         const adminUrl = `${protocol}//${host}/admin.html`;
                         console.log('Redirecting to:', adminUrl);
-                        window.location.href = adminUrl;
-                    }, 500);
+                        
+                        // Use window.location.replace for immediate redirect (prevents back button issues)
+                        window.location.replace(adminUrl);
+                    } catch (redirectError) {
+                        console.error('Redirect error:', redirectError);
+                        // Fallback to href if replace fails
+                        window.location.href = `http://${window.location.host}/admin.html`;
+                    }
                 } else {
                     showToast(response.message || 'Erro ao fazer login', 'error');
                 }
@@ -182,14 +191,16 @@
             try {
                 const user = await checkAuth();
                 if (user) {
+                    console.log('Already logged in, redirecting to admin...');
                     // Force HTTP protocol to prevent HSTS upgrade
                     const protocol = 'http:';
                     const host = window.location.host;
                     const adminUrl = `${protocol}//${host}/admin.html`;
-                    window.location.href = adminUrl;
+                    window.location.replace(adminUrl);
                 }
             } catch (error) {
                 // Not logged in, stay on login page
+                console.log('Not logged in');
             }
         });
     </script>
