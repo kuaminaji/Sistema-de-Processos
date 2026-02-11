@@ -488,7 +488,7 @@ async function saveProcesso(processoId) {
     showLoading();
     
     try {
-        const url = processoId ? `/api/processos/${processoId}` : '/api/processos/create';
+        const url = processoId ? `/api/processos/${processoId}` : '/api/processos';
         const method = processoId ? 'PUT' : 'POST';
         
         await api(url, method, data);
@@ -715,7 +715,7 @@ async function saveCliente(clienteId) {
     showLoading();
     
     try {
-        const url = clienteId ? `/api/clientes/${clienteId}` : '/api/clientes/create';
+        const url = clienteId ? `/api/clientes/${clienteId}` : '/api/clientes';
         const method = clienteId ? 'PUT' : 'POST';
         
         await api(url, method, data);
@@ -940,7 +940,7 @@ async function saveUsuario(usuarioId) {
     showLoading();
     
     try {
-        const url = usuarioId ? `/api/usuarios/${usuarioId}` : '/api/usuarios/create';
+        const url = usuarioId ? `/api/usuarios/${usuarioId}` : '/api/usuarios';
         const method = usuarioId ? 'PUT' : 'POST';
         
         await api(url, method, data);
