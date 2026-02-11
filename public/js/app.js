@@ -24,7 +24,8 @@ async function api(url, method = 'GET', body = null) {
     const options = {
         method,
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
         },
         credentials: 'include'
     };
