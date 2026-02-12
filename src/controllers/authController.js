@@ -16,17 +16,17 @@ async function login(req, res) {
     if (!email || !senha) {
       return res.status(400).json({
         success: false,
-        message: 'Email e senha são obrigatórios'
+        message: 'Email/usuário e senha são obrigatórios'
       });
     }
     
     const emailSanitizado = sanitizarInput(email);
     await db.connect();
     
-    // Buscar usuário
+    // Buscar usuário por email OU nome
     const usuario = await db.get(
-      'SELECT * FROM usuarios WHERE email = ? AND ativo = 1',
-      [emailSanitizado]
+      'SELECT * FROM usuarios WHERE (email = ? OR nome = ?) AND ativo = 1',
+      [emailSanitizado, emailSanitizado]
     );
     
     if (!usuario) {
