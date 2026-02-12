@@ -263,6 +263,8 @@ async function fetchProcessos() {
     showLoading();
     
     try {
+        // Reset to page 1 when fetching (especially after create)
+        processosPage = 1;
         const response = await api('/api/processos?page=1&perPage=50');
         processosData = response.processos || [];
         renderProcessosTable();
@@ -690,6 +692,8 @@ async function fetchClientes() {
     showLoading();
     
     try {
+        // Reset to page 1 when fetching (especially after create)
+        clientesPage = 1;
         const response = await api('/api/clientes?page=1&perPage=50');
         clientesData = response.clientes || [];
         renderClientesTable();
@@ -935,6 +939,8 @@ async function fetchUsuarios() {
     showLoading();
     
     try {
+        // Reset to page 1 when fetching (especially after create)
+        usuariosPage = 1;
         const response = await api('/api/usuarios?page=1&perPage=50');
         renderUsuariosTable(response.usuarios || []);
     } catch (error) {
