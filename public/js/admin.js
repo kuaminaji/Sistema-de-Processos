@@ -412,11 +412,23 @@ async function showProcessoForm(processoId = null) {
                     <input type="text" name="numero" class="form-control" value="${processo.numero || ''}" required>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">Buscar Cliente por CPF</label>
+                    <input type="text" id="cpfBusca" class="form-control" placeholder="000.000.000-00" 
+                           oninput="formatCPFInput(this)" onblur="buscarClientePorCPF(this.value)" maxlength="14">
+                    <small id="cpfStatus" class="form-text"></small>
+                </div>
+            </div>
+            <div class="form-row cols-2">
+                <div class="form-group">
                     <label class="form-label required">Cliente</label>
-                    <select name="cliente_id" class="form-control" required>
+                    <select name="cliente_id" id="clienteSelect" class="form-control" required>
                         <option value="">Selecione...</option>
                         ${clientesOptions}
                     </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Nome do Cliente</label>
+                    <input type="text" id="clienteNome" class="form-control" readonly placeholder="(Auto-preenchido)">
                 </div>
             </div>
             <div class="form-row cols-2">
@@ -472,6 +484,90 @@ async function showProcessoForm(processoId = null) {
     `;
     
     showModal(isEdit ? 'Editar Processo' : 'Novo Processo', content, footer);
+    
+    // Add event listener to update client name when selecting from dropdown
+    setTimeout(() => {
+        const clienteSelect = document.getElementById('clienteSelect');
+        const clienteNome = document.getElementById('clienteNome');
+        
+        if (clienteSelect) {
+            clienteSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption && selectedOption.value) {
+                    const nomeText = selectedOption.text.split(' - ')[0];
+                    if (clienteNome) clienteNome.value = nomeText;
+                } else {
+                    if (clienteNome) clienteNome.value = '';
+                }
+            });
+            
+            // Trigger initial update if editing
+            if (processo.cliente_id) {
+                const event = new Event('change');
+                clienteSelect.dispatchEvent(event);
+            }
+        }
+    }, 100);
+}
+
+// Buscar cliente por CPF
+async function buscarClientePorCPF(cpf) {
+    if (!cpf || cpf.trim() === '') return;
+    
+    const cpfStatus = document.getElementById('cpfStatus');
+    const clienteSelect = document.getElementById('clienteSelect');
+    const clienteNome = document.getElementById('clienteNome');
+    
+    // Remove formatting for search
+    const cpfNumeros = cpf.replace(/\D/g, '');
+    
+    if (cpfNumeros.length !== 11) {
+        if (cpfStatus) {
+            cpfStatus.textContent = 'CPF inválido';
+            cpfStatus.style.color = 'var(--danger)';
+        }
+        return;
+    }
+    
+    try {
+        if (cpfStatus) {
+            cpfStatus.textContent = 'Buscando...';
+            cpfStatus.style.color = 'var(--primary)';
+        }
+        
+        const response = await api('/api/clientes?page=1&perPage=100');
+        const clientes = response.clientes || [];
+        
+        // Find client by CPF
+        const cliente = clientes.find(c => c.cpf === cpfNumeros);
+        
+        if (cliente) {
+            // Client found - auto-fill
+            if (clienteSelect) {
+                clienteSelect.value = cliente.id;
+                const event = new Event('change');
+                clienteSelect.dispatchEvent(event);
+            }
+            if (cpfStatus) {
+                cpfStatus.textContent = `✓ Cliente encontrado: ${cliente.nome}`;
+                cpfStatus.style.color = 'var(--success)';
+            }
+        } else {
+            // Client not found
+            if (cpfStatus) {
+                cpfStatus.textContent = '✗ Cliente não encontrado';
+                cpfStatus.style.color = 'var(--danger)';
+            }
+            if (clienteSelect) clienteSelect.value = '';
+            if (clienteNome) clienteNome.value = '';
+        }
+    } catch (error) {
+        console.error('Error searching cliente:', error);
+        if (cpfStatus) {
+            cpfStatus.textContent = 'Erro ao buscar cliente';
+            cpfStatus.style.color = 'var(--danger)';
+        }
+    }
 }
 
 async function saveProcesso(processoId) {
@@ -1318,5 +1414,16 @@ async function backupSystem() {
         showToast('Erro ao fazer backup', 'error');
     } finally {
         hideLoading();
+    }
+}
+
+// Helper function to format CPF input
+function formatCPFInput(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length <= 11) {
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d)/, '$1.$2');
+        value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        input.value = value;
     }
 }
