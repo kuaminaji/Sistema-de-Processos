@@ -112,6 +112,9 @@ function showSection(section) {
         case 'auditoria':
             loadAuditoria();
             break;
+        case 'configuracoes':
+            loadConfiguracoes();
+            break;
     }
 }
 
@@ -1425,5 +1428,177 @@ function formatCPFInput(input) {
         value = value.replace(/(\d{3})(\d)/, '$1.$2');
         value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
         input.value = value;
+    }
+}
+
+// ========== CONFIGURAÇÕES ==========
+async function loadConfiguracoes() {
+    const content = `
+        <div class="page-header">
+            <h1>⚙️ Configurações</h1>
+            <p>Gerenciar configurações do sistema</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>Backup e Restauração</h3>
+            </div>
+            <div class="card-body">
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>💾 Gerar Backup</h4>
+                            <p>Cria um arquivo JSON com todos os dados do sistema (processos, clientes, usuários, etc.)</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="backupSystem()">
+                            Fazer Backup
+                        </button>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>📥 Restaurar Backup</h4>
+                            <p>Restaura dados de um arquivo de backup JSON. <strong>Atenção:</strong> Isso substituirá todos os dados atuais!</p>
+                        </div>
+                        <div>
+                            <input type="file" id="restoreFile" accept=".json" style="display: none;" onchange="restoreFromFile(this)">
+                            <button class="btn btn-warning" onclick="document.getElementById('restoreFile').click()">
+                                Restaurar Backup
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>Sistema</h3>
+            </div>
+            <div class="card-body">
+                <div class="settings-group">
+                    <div class="setting-item">
+                        <div class="setting-info">
+                            <h4>🔄 Resetar Sistema</h4>
+                            <p class="text-danger"><strong>⚠️ ATENÇÃO:</strong> Esta ação irá apagar TODOS os dados do sistema e criar um novo usuário admin padrão. Esta ação NÃO pode ser desfeita!</p>
+                        </div>
+                        <button class="btn btn-danger" onclick="resetSystem()">
+                            Resetar Sistema
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const mainContent = document.querySelector('.content-main');
+    if (mainContent) {
+        mainContent.innerHTML = content;
+    }
+}
+
+async function restoreFromFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    if (!confirm('⚠️ ATENÇÃO: Restaurar um backup irá SUBSTITUIR todos os dados atuais do sistema. Deseja continuar?')) {
+        input.value = '';
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        const formData = new FormData();
+        formData.append('backup', file);
+        
+        const response = await fetch('/api/backup/restore', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'X-CSRF-Token': await getCsrfToken()
+            },
+            body: formData
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Erro ao restaurar backup');
+        }
+        
+        showToast('Backup restaurado com sucesso! Recarregando página...', 'success');
+        
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+    } catch (error) {
+        console.error('Error restoring backup:', error);
+        showToast(error.message || 'Erro ao restaurar backup', 'error');
+    } finally {
+        hideLoading();
+        input.value = '';
+    }
+}
+
+async function resetSystem() {
+    const confirmText = prompt(
+        '⚠️ ATENÇÃO CRÍTICA ⚠️\n\n' +
+        'Você está prestes a RESETAR TODO O SISTEMA.\n' +
+        'Isso irá:\n' +
+        '- APAGAR todos os processos\n' +
+        '- APAGAR todos os clientes\n' +
+        '- APAGAR todas as movimentações\n' +
+        '- APAGAR todos os usuários\n' +
+        '- APAGAR todos os logs de auditoria\n' +
+        '- Criar um novo usuário admin padrão\n\n' +
+        'Esta ação NÃO PODE SER DESFEITA!\n\n' +
+        'Para confirmar, digite RESETAR em letras maiúsculas:'
+    );
+    
+    if (confirmText !== 'RESETAR') {
+        if (confirmText !== null) {
+            showToast('Operação cancelada', 'info');
+        }
+        return;
+    }
+    
+    const doubleConfirm = confirm(
+        'ÚLTIMA CONFIRMAÇÃO\n\n' +
+        'Tem certeza absoluta que deseja resetar todo o sistema?\n' +
+        'Esta é sua última chance de cancelar!'
+    );
+    
+    if (!doubleConfirm) {
+        showToast('Operação cancelada', 'info');
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        const response = await fetch('/api/backup/reset', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': await getCsrfToken()
+            }
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Erro ao resetar sistema');
+        }
+        
+        showToast('Sistema resetado com sucesso! Você será redirecionado para o login...', 'success');
+        
+        setTimeout(() => {
+            window.location.href = '/login.html';
+        }, 3000);
+    } catch (error) {
+        console.error('Error resetting system:', error);
+        showToast(error.message || 'Erro ao resetar sistema', 'error');
+    } finally {
+        hideLoading();
     }
 }

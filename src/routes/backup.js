@@ -13,6 +13,15 @@ router.get(
   backupController.backup
 );
 
+// POST /api/backup/backup - Criar backup (alternative endpoint)
+router.post(
+  '/backup',
+  requireAuth,
+  requirePermission('admin.backup'),
+  auditMiddleware('backup_create', 'backup'),
+  backupController.backup
+);
+
 // POST /api/backup/restore - Restaurar dados do backup
 router.post(
   '/restore',
@@ -20,6 +29,15 @@ router.post(
   requirePermission('admin.restore'),
   auditMiddleware('backup_restore', 'backup'),
   backupController.restore
+);
+
+// POST /api/backup/reset - Resetar sistema
+router.post(
+  '/reset',
+  requireAuth,
+  requirePermission('admin.backup'),
+  auditMiddleware('system_reset', 'sistema'),
+  backupController.reset
 );
 
 module.exports = router;

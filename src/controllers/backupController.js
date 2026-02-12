@@ -320,7 +320,74 @@ async function restore(req, res) {
   }
 }
 
+// Resetar sistema (apagar todos os dados e reinicializar)
+async function reset(req, res) {
+  const db = new Database();
+  
+  try {
+    await db.connect();
+    
+    // Deletar todos os dados em ordem para respeitar foreign keys
+    await db.run('DELETE FROM movimentacoes');
+    await db.run('DELETE FROM processos');
+    await db.run('DELETE FROM clientes');
+    await db.run('DELETE FROM usuario_permissoes');
+    await db.run('DELETE FROM auditoria');
+    await db.run('DELETE FROM usuarios WHERE id != 1'); // Keep admin for now
+    await db.run('DELETE FROM usuarios WHERE id = 1'); // Delete admin last
+    
+    // Agora reinicializar o banco com dados padrão
+    const bcrypt = require('bcryptjs');
+    const senhaHash = await bcrypt.hash('admin123', 10);
+    
+    // Criar usuário admin padrão
+    await db.run(
+      `INSERT INTO usuarios (nome, email, senha_hash, perfil, ativo, forcar_troca_senha) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      ['Admin', 'admin@local', senhaHash, 'admin', 1, 0]
+    );
+    
+    // Obter ID do novo admin
+    const admin = await db.get('SELECT id FROM usuarios WHERE email = ?', ['admin@local']);
+    
+    // Atribuir todas as permissões ao admin
+    const permissoes = await db.all('SELECT id FROM permissoes');
+    for (const permissao of permissoes) {
+      await db.run(
+        'INSERT INTO usuario_permissoes (usuario_id, permissao_id) VALUES (?, ?)',
+        [admin.id, permissao.id]
+      );
+    }
+    
+    await db.close();
+    
+    // Registrar auditoria do reset
+    await auditLog(req, 'system_reset', {
+      tela: 'configuracoes',
+      status: 200,
+      detalhes: 'Sistema resetado completamente'
+    });
+    
+    // Destruir sessão atual
+    req.session.destroy();
+    
+    res.json({
+      success: true,
+      message: 'Sistema resetado com sucesso. Novo admin criado: admin@local / admin123'
+    });
+  } catch (error) {
+    console.error('Erro ao resetar sistema:', error);
+    await db.close();
+    
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao resetar sistema'
+    });
+  }
+}
+
 module.exports = {
   backup,
-  restore
+  restore,
+  reset
 };
