@@ -544,8 +544,11 @@ async function buscarClientePorCPF(cpf) {
         const response = await api('/api/clientes?page=1&perPage=100');
         const clientes = (response.data && response.data.items) || response.clientes || [];
         
-        // Find client by CPF
-        const cliente = clientes.find(c => c.cpf === cpfNumeros);
+        // Find client by CPF - normalize both sides for comparison
+        const cliente = clientes.find(c => {
+            const cpfCliente = c.cpf ? c.cpf.replace(/\D/g, '') : '';
+            return cpfCliente === cpfNumeros;
+        });
         
         if (cliente) {
             // Client found - auto-fill
