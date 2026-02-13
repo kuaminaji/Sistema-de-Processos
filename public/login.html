@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema de Processos</title>
+    <!-- Protocol Detector - MUST be first to catch HTTPS access -->
+    <script src="/js/protocol-detector.js"></script>
+    <link rel="stylesheet" href="/css/styles.css">
+    <style>
+        .critical-notice {
+            background: #ff4444;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .critical-notice a {
+            color: #ffff00;
+            text-decoration: underline;
+        }
+        .auth-container {
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+    <!-- CRITICAL NOTICE -->
+    <div class="critical-notice" id="hsts-notice">
+        ⚠️ SE VOCÊ ESTÁ VENDO ERROS SSL: USE <a href="http://127.0.0.1:3000/login.html">http://127.0.0.1:3000</a> EM VEZ DE localhost ⚠️
+    </div>
+
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <h1>⚖️ Sistema de Processos</h1>
+                <p>Faça login para continuar</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email" class="form-label required">E-mail ou Nome de Usuário</label>
+                    <input 
+                        type="text" 
+                        id="email" 
+                        name="email" 
+                        class="form-control" 
+                        placeholder="seu@email.com ou nome de usuário"
+                        required
+                        autocomplete="username"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="senha" class="form-label required">Senha</label>
+                    <input 
+                        type="password" 
+                        id="senha" 
+                        name="senha" 
+                        class="form-control" 
+                        placeholder="••••••••"
+                        required
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <div id="twoFactorGroup" class="form-group" style="display: none;">
+                    <label for="token2fa" class="form-label required">Código 2FA</label>
+                    <input 
+                        type="text" 
+                        id="token2fa" 
+                        name="token2fa" 
+                        class="form-control" 
+                        placeholder="000000"
+                        maxlength="6"
+                        pattern="[0-9]{6}"
+                        autocomplete="one-time-code"
+                    >
+                    <span class="form-text">Digite o código de 6 dígitos do seu aplicativo autenticador</span>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input type="checkbox" id="remember" name="remember" class="form-check-input">
+                    <label for="remember" class="form-check-label">Lembrar-me neste dispositivo</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg btn-block" id="loginBtn">
+                    <span id="loginBtnText">Entrar</span>
+                    <span id="loginBtnLoading" style="display: none;" class="loading"></span>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <a href="/consulta.html" class="text-primary">Consulta pública</a>
+                <span class="text-muted"> | </span>
+                <a href="/index.html" class="text-primary">Voltar</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        const form = document.getElementById('loginForm');
+        const twoFactorGroup = document.getElementById('twoFactorGroup');
+        const loginBtn = document.getElementById('loginBtn');
+        const loginBtnText = document.getElementById('loginBtnText');
+        const loginBtnLoading = document.getElementById('loginBtnLoading');
+
+        let requires2FA = false;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            const token2fa = document.getElementById('token2fa').value;
+
+            // Disable button and show loading
+            loginBtn.disabled = true;
+            loginBtnText.style.display = 'none';
+            loginBtnLoading.style.display = 'inline-block';
+
+            try {
+                const data = { email, senha };
+                
+                // Add 2FA token if required
+                if (requires2FA && token2fa) {
+                    data.token2fa = token2fa;
+                }
+
+                const response = await api('/api/auth/login', 'POST', data);
+                
+                console.log('Login response:', response);
+
+                if (response.requires2FA) {
+                    // Show 2FA input
+                    requires2FA = true;
+                    twoFactorGroup.style.display = 'block';
+                    document.getElementById('token2fa').focus();
+                    showToast('Digite o código 2FA', 'info');
+                } else if (response.success) {
+                    console.log('Login successful, preparing redirect...');
+                    showToast('Login realizado com sucesso!', 'success');
+                    
+                    // Save remember preference
+                    if (document.getElementById('remember').checked) {
+                        localStorage.setItem('rememberLogin', 'true');
+                    }
+                    
+                    // IMMEDIATE redirect - no setTimeout to prevent any interference
+                    try {
+                        const protocol = 'http:';
+                        const host = window.location.host;
+                        const adminUrl = `${protocol}//${host}/admin.html`;
+                        console.log('Redirecting to:', adminUrl);
+                        
+                        // Use window.location.replace for immediate redirect (prevents back button issues)
+                        window.location.replace(adminUrl);
+                    } catch (redirectError) {
+                        console.error('Redirect error:', redirectError);
+                        // Fallback to href if replace fails
+                        window.location.href = `http://${window.location.host}/admin.html`;
+                    }
+                } else {
+                    showToast(response.message || 'Erro ao fazer login', 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showToast(error.message || 'Erro ao fazer login. Verifique suas credenciais.', 'error');
+                
+                // Reset 2FA if error
+                if (requires2FA) {
+                    document.getElementById('token2fa').value = '';
+                }
+            } finally {
+                // Re-enable button
+                loginBtn.disabled = false;
+                loginBtnText.style.display = 'inline';
+                loginBtnLoading.style.display = 'none';
+            }
+        });
+
+        // Check if already logged in
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const user = await checkAuth();
+                if (user) {
+                    console.log('Already logged in, redirecting to admin...');
+                    // Force HTTP protocol to prevent HSTS upgrade
+                    const protocol = 'http:';
+                    const host = window.location.host;
+                    const adminUrl = `${protocol}//${host}/admin.html`;
+                    window.location.replace(adminUrl);
+                }
+            } catch (error) {
+                // Not logged in, stay on login page
+                console.log('Not logged in');
+            }
+        });
+    </script>
+</body>
+</html>

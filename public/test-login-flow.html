@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Login Flow</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        pre { background: #f4f4f4; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Login Flow Test</h1>
+    <div id="output"></div>
+    
+    <script src="/js/app.js"></script>
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.textContent = message;
+            output.appendChild(div);
+        }
+        
+        async function runTests() {
+            try {
+                log('1. Testing CSRF token...', 'info');
+                const token = await getCsrfToken();
+                log(`   ✅ Got CSRF token: ${token.substring(0, 10)}...`, 'success');
+                
+                log('\n2. Testing login...', 'info');
+                const loginResult = await api('/api/auth/login', 'POST', {
+                    email: 'admin@local',
+                    senha: 'admin123'
+                });
+                log(`   ✅ Login success: ${loginResult.success}`, 'success');
+                log(`   Force password change: ${loginResult.data.forcar_troca_senha}`, 'info');
+                
+                log('\n3. Testing checkAuth...', 'info');
+                const user = await checkAuth();
+                if (user) {
+                    log(`   ✅ User authenticated: ${user.email}`, 'success');
+                } else {
+                    log(`   ❌ User not authenticated`, 'error');
+                }
+                
+                log('\n✅ All tests passed!', 'success');
+                log('\nNow test actual login redirect...', 'info');
+                log('The page should redirect to admin.html in 3 seconds...', 'info');
+                
+                setTimeout(() => {
+                    const protocol = 'http:';
+                    const host = window.location.host;
+                    const adminUrl = `${protocol}//${host}/admin.html`;
+                    log(`Redirecting to: ${adminUrl}`, 'info');
+                    window.location.href = adminUrl;
+                }, 3000);
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+        
+        runTests();
+    </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta Pública - Sistema de Processos</title>
+    <!-- Protocol Detector - MUST be first to catch HTTPS access -->
+    <script src="/js/protocol-detector.js"></script>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card" style="max-width: 700px;">
+            <div class="auth-logo">
+                <h1>🔍 Consulta Pública</h1>
+                <p>Consulte processos de forma pública</p>
+            </div>
+
+            <div class="tabs">
+                <ul class="tabs-nav">
+                    <li><button class="active" data-tab="cpf">Consultar por CPF</button></li>
+                    <li><button data-tab="numero">Consultar por Número</button></li>
+                </ul>
+            </div>
+
+            <!-- Tab: Consultar por CPF -->
+            <div id="cpfTab" class="tab-content active">
+                <form id="consultaCpfForm">
+                    <div class="form-group">
+                        <label for="cpf" class="form-label required">CPF do Cliente</label>
+                        <input 
+                            type="text" 
+                            id="cpf" 
+                            class="form-control" 
+                            placeholder="000.000.000-00"
+                            maxlength="14"
+                            required
+                        >
+                        <span class="form-text">Digite o CPF para consultar processos associados</span>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" id="cpfBtn">
+                        <span id="cpfBtnText">Consultar</span>
+                        <span id="cpfBtnLoading" style="display: none;" class="loading"></span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Tab: Consultar por Número -->
+            <div id="numeroTab" class="tab-content">
+                <form id="consultaNumeroForm">
+                    <div class="form-group">
+                        <label for="numero" class="form-label required">Número do Processo</label>
+                        <input 
+                            type="text" 
+                            id="numero" 
+                            class="form-control" 
+                            placeholder="Ex: 0000000-00.0000.0.00.0000"
+                            required
+                        >
+                        <span class="form-text">Digite o número completo do processo</span>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" id="numeroBtn">
+                        <span id="numeroBtnText">Consultar</span>
+                        <span id="numeroBtnLoading" style="display: none;" class="loading"></span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Results -->
+            <div id="resultadosContainer" style="display: none; margin-top: var(--spacing-xl);">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Resultados da Consulta</h3>
+                        <button class="btn btn-ghost btn-sm" onclick="limparResultados()">✕ Limpar</button>
+                    </div>
+                    <div class="card-body" id="resultadosContent">
+                        <!-- Results will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="auth-footer">
+                <a href="/login.html" class="text-primary">Fazer login</a>
+                <span class="text-muted"> | </span>
+                <a href="/index.html" class="text-primary">Voltar</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script src="/js/consulta.js"></script>
+</body>
+</html>
