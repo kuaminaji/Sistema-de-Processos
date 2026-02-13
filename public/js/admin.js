@@ -401,7 +401,7 @@ async function showProcessoForm(processoId = null) {
     let clientes = [];
     try {
         const response = await api('/api/clientes?page=1&perPage=50');
-        clientes = response.clientes || [];
+        clientes = (response.data && response.data.items) || response.clientes || [];
     } catch (error) {
         console.error('Error loading clientes:', error);
     }
@@ -542,7 +542,7 @@ async function buscarClientePorCPF(cpf) {
         }
         
         const response = await api('/api/clientes?page=1&perPage=100');
-        const clientes = response.clientes || [];
+        const clientes = (response.data && response.data.items) || response.clientes || [];
         
         // Find client by CPF
         const cliente = clientes.find(c => c.cpf === cpfNumeros);
@@ -1136,7 +1136,10 @@ async function fetchPermissoes() {
             api('/api/usuarios?page=1&perPage=50')
         ]);
         
-        renderPermissoes(permissoesResp.permissoes || [], usuariosResp.usuarios || []);
+        const permissoes = permissoesResp.permissoes || [];
+        const usuarios = (usuariosResp.data && usuariosResp.data.items) || usuariosResp.usuarios || [];
+        
+        renderPermissoes(permissoes, usuarios);
     } catch (error) {
         console.error('Error fetching permissoes:', error);
         showToast('Erro ao carregar permissões', 'error');
