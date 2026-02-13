@@ -266,7 +266,8 @@ async function fetchProcessos() {
         // Reset to page 1 when fetching (especially after create)
         processosPage = 1;
         const response = await api('/api/processos?page=1&perPage=50');
-        processosData = response.processos || [];
+        // Backend returns response.data.items, not response.processos
+        processosData = (response.data && response.data.items) || response.processos || [];
         renderProcessosTable();
     } catch (error) {
         console.error('Error fetching processos:', error);
@@ -695,7 +696,8 @@ async function fetchClientes() {
         // Reset to page 1 when fetching (especially after create)
         clientesPage = 1;
         const response = await api('/api/clientes?page=1&perPage=50');
-        clientesData = response.clientes || [];
+        // Backend returns response.data.items, not response.clientes
+        clientesData = (response.data && response.data.items) || response.clientes || [];
         renderClientesTable();
     } catch (error) {
         console.error('Error fetching clientes:', error);
@@ -942,7 +944,9 @@ async function fetchUsuarios() {
         // Reset to page 1 when fetching (especially after create)
         usuariosPage = 1;
         const response = await api('/api/usuarios?page=1&perPage=50');
-        renderUsuariosTable(response.usuarios || []);
+        // Backend returns response.data.items, not response.usuarios
+        const usuarios = (response.data && response.data.items) || response.usuarios || [];
+        renderUsuariosTable(usuarios);
     } catch (error) {
         console.error('Error fetching usuarios:', error);
         showToast('Erro ao carregar usuários', 'error');
