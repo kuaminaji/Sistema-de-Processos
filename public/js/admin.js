@@ -1439,7 +1439,9 @@ function formatCPFInput(input) {
 
 // ========== CONFIGURAÇÕES ==========
 async function loadConfiguracoes() {
-    const content = `
+    const section = document.getElementById('configuracoesSection');
+    
+    section.innerHTML = `
         <div class="page-header">
             <h1>⚙️ Configurações</h1>
             <p>Gerenciar configurações do sistema</p>
@@ -1496,11 +1498,6 @@ async function loadConfiguracoes() {
             </div>
         </div>
     `;
-    
-    const mainContent = document.querySelector('.content-main');
-    if (mainContent) {
-        mainContent.innerHTML = content;
-    }
 }
 
 async function restoreFromFile(input) {
