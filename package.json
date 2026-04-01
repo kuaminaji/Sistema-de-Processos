@@ -16,7 +16,7 @@
     "dist:win": "electron-builder --win nsis",
     "dist:portable": "electron-builder --win portable",
     "dist:linux": "electron-builder --linux deb rpm",
-    "dist:mac": "electron-builder --mac dmg zip",
+    "dist:mac": "electron-builder --mac dmg zip --publish never",
     "dist:all": "electron-builder --win nsis --linux deb rpm --mac dmg"
   },
   "keywords": [
