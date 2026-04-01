@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trocar Senha - Sistema de Processos</title>
+  <script src="/js/protocol-detector.js"></script>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="brand-showcase brand-showcase-compact">
+        <div class="brand-card">
+          <div class="brand-logo-shell">
+            <img src="/branding/company-logo.png" alt="EA Sistemas" class="brand-logo-image">
+          </div>
+          <div class="brand-card-copy">
+            <span class="brand-card-chip">Tecnologia</span>
+            <strong>EA Sistemas</strong>
+            <small>Marca principal do aplicativo.</small>
+          </div>
+        </div>
+        <div class="brand-card">
+          <div class="brand-logo-shell brand-logo-shell-contrast">
+            <img src="/branding/lawyer-logo.png" alt="Marca da advogada" class="brand-logo-image">
+          </div>
+          <div class="brand-card-copy">
+            <span class="brand-card-chip">Escritório</span>
+            <strong>Marca da advogada</strong>
+            <small>Atualize esse arquivo quando concluir a logo.</small>
+          </div>
+        </div>
+      </div>
+      <div class="auth-logo">
+        <h1>Trocar senha</h1>
+        <p>Use uma senha com no minimo 6 caracteres. Ela pode ser apenas numerica.</p>
+      </div>
+      <div class="screen-actions">
+        <div>
+          <p class="screen-actions-title">Sessão autenticada</p>
+          <p class="screen-actions-subtitle">Volte ao painel ou encerre sua sessão com segurança.</p>
+        </div>
+        <div class="screen-actions-buttons">
+          <button class="btn btn-outline" type="button" onclick="window.location.href='/admin.html'">Voltar ao painel</button>
+          <button class="btn btn-danger" type="button" onclick="logout()">Sair</button>
+        </div>
+      </div>
+      <form id="trocarSenhaForm">
+  <div class="form-group">
+    <label class="form-label required">Senha atual</label>
+    <div class="input-with-action">
+      <input id="senhaAtual" type="password" class="form-control" required>
+      <button class="input-action-btn" type="button" onclick="togglePasswordVisibility('senhaAtual', this)">Mostrar</button>
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="form-label required">Nova senha</label>
+    <div class="input-with-action">
+      <input id="novaSenha" type="password" class="form-control" minlength="6" required>
+      <button class="input-action-btn" type="button" onclick="togglePasswordVisibility('novaSenha', this)">Mostrar</button>
+    </div>
+    <div class="password-strength"><div id="strengthBar" class="password-strength-bar"></div></div>
+    <div id="strengthText" class="form-text">Minimo de 6 caracteres. Pode conter apenas numeros.</div>
+  </div>
+  <div class="form-group">
+    <label class="form-label required">Confirmar nova senha</label>
+    <div class="input-with-action">
+      <input id="confirmarSenha" type="password" class="form-control" minlength="6" required>
+      <button class="input-action-btn" type="button" onclick="togglePasswordVisibility('confirmarSenha', this)">Mostrar</button>
+    </div>
+    <div id="matchText" class="form-text"></div>
+  </div>
+  <button class="btn btn-primary btn-block" type="submit">Salvar nova senha</button>
+</form>
+    </div>
+  </div>
+  <script src="/js/app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await checkAuth();
+      if (!user) window.location.href = '/login.html';
+    });
+
+    const novaSenhaInput = document.getElementById('novaSenha');
+    const confirmarSenhaInput = document.getElementById('confirmarSenha');
+    novaSenhaInput.addEventListener('input', () => {
+      const strength = calculatePasswordStrength(novaSenhaInput.value);
+      const bar = document.getElementById('strengthBar');
+      bar.className = 'password-strength-bar';
+      if (strength.score === 1) bar.classList.add('weak');
+      if (strength.score === 2) bar.classList.add('medium');
+      if (strength.score === 3) bar.classList.add('strong');
+      document.getElementById('strengthText').textContent = `Força da senha: ${strength.text}`;
+      validateMatch();
+    });
+    confirmarSenhaInput.addEventListener('input', validateMatch);
+
+    function validateMatch() {
+      const matchText = document.getElementById('matchText');
+      if (!confirmarSenhaInput.value) {
+        matchText.textContent = '';
+        return;
+      }
+      matchText.textContent = novaSenhaInput.value === confirmarSenhaInput.value ?'As senhas coincidem' : 'As senhas não coincidem';
+    }
+
+    document.getElementById('trocarSenhaForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      try {
+        await api('/api/auth/trocar-senha', 'POST', {
+          senhaAtual: document.getElementById('senhaAtual').value,
+          senhaNova: novaSenhaInput.value,
+          confirmarSenha: confirmarSenhaInput.value
+        });
+        showToast('Senha alterada com sucesso', 'success');
+        setTimeout(() => window.location.href = '/admin.html', 1200);
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    });
+  </script>
+</body>
+</html>
+

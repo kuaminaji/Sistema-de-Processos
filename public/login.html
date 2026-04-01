@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Sistema de Processos</title>
+  <script src="/js/protocol-detector.js"></script>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-shell">
+      <section class="auth-hero-panel">
+        <div class="brand-showcase brand-showcase-dark brand-showcase-single">
+          <div class="brand-card">
+            <div class="brand-logo-shell">
+              <img src="/branding/company-logo.png" alt="EA Sistemas" class="brand-logo-image">
+            </div>
+            <div class="brand-card-copy">
+              <strong>EA Sistemas</strong>
+              <small>Marca principal da plataforma e da distribuicao desktop.</small>
+            </div>
+          </div>
+		  
+          
+        </div>
+		
+        <span class="section-kicker" style="background:rgba(255,255,255,0.14); color:#fff;">Acesso seguro</span>
+        <h1>Sistema de Processos</h1>
+        <p>Entrando pelo painel institucional voce acessa processos, clientes, auditoria e operacao com uma interface mais clara e segura.</p>
+      </section>
+
+      <div class="auth-form-card">
+        <div class="auth-logo auth-logo-left">
+          <h2>Entrar no sistema</h2>
+          <p>Selecione um usuario salvo e digite a senha manualmente para entrar com seguranca.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Usuarios salvos</label>
+          <div class="form-text">Somente o usuario fica disponivel para selecao. A senha nunca e preenchida automaticamente.</div>
+          <div id="savedUsers" class="saved-users">
+            <select id="savedUsersSelect" class="form-control saved-users-select" onchange="handleSavedUserChange(this)">
+              <option value="">Carregando usuarios...</option>
+            </select>
+            <div id="savedUserSummary" class="saved-user-summary text-secondary">Selecione um usuario salvo para preencher o login.</div>
+          </div>
+        </div>
+
+        <form id="loginForm" autocomplete="off">
+          <div class="form-group">
+            <label for="email" class="form-label required">Email ou nome de usuario</label>
+            <input id="email" name="email" class="form-control" autocomplete="username" required>
+          </div>
+          <div class="form-group">
+            <label for="senha" class="form-label required">Senha</label>
+            <div class="input-with-action">
+              <input id="senha" name="senha_digitada" type="password" class="form-control" autocomplete="new-password" required>
+              <button class="input-action-btn" type="button" onclick="togglePassword()">Mostrar</button>
+            </div>
+            <div class="form-text">A senha precisa ser digitada a cada acesso.</div>
+          </div>
+          <div id="twoFactorGroup" class="form-group" style="display:none;">
+            <label for="token2fa" class="form-label required">Codigo 2FA</label>
+            <input id="token2fa" name="token2fa" class="form-control" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg btn-block" id="loginBtn">
+            <span id="loginBtnText">Entrar</span>
+            <span id="loginBtnLoading" class="loading" style="display:none;"></span>
+          </button>
+        </form>
+
+        <div class="auth-footer">
+          <a href="/recuperar-senha.html">Recuperar senha</a>
+          <span class="text-secondary"> | </span>
+          <a href="/consulta.html">Consulta publica</a>
+          <span class="text-secondary"> | </span>
+          <a href="/index.html">Voltar</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    const form = document.getElementById('loginForm');
+    const twoFactorGroup = document.getElementById('twoFactorGroup');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginBtnText = document.getElementById('loginBtnText');
+    const loginBtnLoading = document.getElementById('loginBtnLoading');
+    const savedUsersSelect = document.getElementById('savedUsersSelect');
+    const savedUserSummary = document.getElementById('savedUserSummary');
+    let requires2FA = false;
+
+    async function loadSavedUsers() {
+      try {
+        const response = await fetch('/api/auth/login-users');
+        const data = await response.json();
+        const users = data.data || [];
+
+        if (!users.length) {
+          savedUsersSelect.innerHTML = '<option value="">Nenhum usuario ativo encontrado</option>';
+          savedUsersSelect.disabled = true;
+          savedUserSummary.textContent = 'Nenhum usuario ativo encontrado.';
+          return;
+        }
+
+        savedUsersSelect.disabled = false;
+        savedUsersSelect.innerHTML = `
+          <option value="">Selecione um usuario salvo</option>
+          ${users.map((user) => `
+            <option
+              value="${escapeHtml(user.email)}"
+              data-email="${escapeHtml(user.email)}"
+              data-nome="${escapeHtml(user.nome || user.email)}"
+              data-last-login="${escapeHtml(user.ultimo_login_em || '')}"
+            >
+              ${escapeHtml(user.nome || user.email)} - ${escapeHtml(user.email)}
+            </option>
+          `).join('')}
+        `;
+
+        handleSavedUserChange(savedUsersSelect);
+      } catch (error) {
+        savedUsersSelect.innerHTML = '<option value="">Nao foi possivel listar os usuarios</option>';
+        savedUsersSelect.disabled = true;
+        savedUserSummary.textContent = 'Nao foi possivel listar os usuarios salvos.';
+      }
+    }
+
+    function handleSavedUserChange(select) {
+      const option = select.options[select.selectedIndex];
+      if (!option || !option.value) {
+        savedUserSummary.textContent = 'Selecione um usuario salvo para preencher o login.';
+        document.getElementById('email').value = '';
+        return;
+      }
+
+      selectLoginUser(option.dataset.email || option.value);
+      const nome = option.dataset.nome || option.value;
+      const lastLogin = option.dataset.lastLogin ? formatDateTime(option.dataset.lastLogin) : 'Novo acesso';
+      savedUserSummary.innerHTML = `<strong>${escapeHtml(nome)}</strong><br><span class="text-secondary">${escapeHtml(lastLogin)}</span>`;
+    }
+
+    function selectLoginUser(email) {
+      document.getElementById('email').value = email;
+      document.getElementById('senha').value = '';
+      document.getElementById('token2fa').value = '';
+      requires2FA = false;
+      twoFactorGroup.style.display = 'none';
+      document.getElementById('senha').focus();
+    }
+
+    function togglePassword() {
+      const input = document.getElementById('senha');
+      const button = document.querySelector('.input-action-btn');
+      const visible = input.type === 'text';
+      input.type = visible ?'password' : 'text';
+      if (button) button.textContent = visible ?'Mostrar' : 'Ocultar';
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      loginBtn.disabled = true;
+      loginBtnText.style.display = 'none';
+      loginBtnLoading.style.display = 'inline-block';
+
+      try {
+        const payload = {
+          email: document.getElementById('email').value.trim(),
+          senha: document.getElementById('senha').value,
+          token2fa: document.getElementById('token2fa').value.trim()
+        };
+
+        const response = await api('/api/auth/login', 'POST', payload);
+        if (response.requires2FA) {
+          requires2FA = true;
+          twoFactorGroup.style.display = 'block';
+          document.getElementById('token2fa').focus();
+          showToast('Digite o codigo de autenticacao em dois fatores', 'info');
+          return;
+        }
+
+        showToast('Login realizado com sucesso', 'success');
+        window.location.replace('/admin.html');
+      } catch (error) {
+        document.getElementById('senha').value = '';
+        if (requires2FA) {
+          document.getElementById('token2fa').value = '';
+        }
+        showToast(error.message || 'Erro ao fazer login', 'error');
+      } finally {
+        loginBtn.disabled = false;
+        loginBtnText.style.display = 'inline';
+        loginBtnLoading.style.display = 'none';
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await checkAuth();
+      if (user) {
+        window.location.replace('/admin.html');
+        return;
+      }
+      await loadSavedUsers();
+    });
+  </script>
+</body>
+</html>

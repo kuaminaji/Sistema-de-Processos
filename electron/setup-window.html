@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuracao inicial</title>
+  <link rel="stylesheet" href="./setup-window.css" />
+</head>
+<body>
+  <main class="setup-shell">
+    <section class="setup-panel">
+      <div class="setup-brand">
+        <img
+          class="setup-brand-logo"
+          src="../public/assets/branding/company-logo.png"
+          alt="Logo da empresa"
+        />
+        <div class="setup-brand-copy">
+          <span class="setup-kicker">Instalacao desktop</span>
+          <h1>Defina a pasta dos dados do sistema</h1>
+          <p>
+            Antes de concluir a configuracao, escolha onde o banco de dados e os anexos
+            do escritorio serao armazenados.
+          </p>
+        </div>
+      </div>
+
+      <div class="setup-grid">
+        <article class="setup-card setup-card-primary">
+          <header class="setup-card-header">
+            <span class="setup-step">01</span>
+            <div>
+              <h2>Pasta de destino</h2>
+              <p>Esse local sera usado para o banco SQLite, uploads e branding do app.</p>
+            </div>
+          </header>
+
+          <label class="setup-label" for="dataDir">Pasta selecionada</label>
+          <div class="setup-path-row">
+            <input id="dataDir" class="setup-input" type="text" readonly />
+            <button id="browseButton" class="setup-button setup-button-secondary" type="button">
+              Escolher pasta
+            </button>
+          </div>
+
+          <div class="setup-actions-inline">
+            <button id="defaultButton" class="setup-button setup-button-ghost" type="button">
+              Usar pasta padrao
+            </button>
+          </div>
+
+          <label class="setup-label" for="dbPath">Banco de dados</label>
+          <input id="dbPath" class="setup-input setup-input-readonly" type="text" readonly />
+
+          <div id="messageBox" class="setup-message" hidden></div>
+
+          <div class="setup-submit-row">
+            <button id="saveButton" class="setup-button setup-button-primary" type="button">
+              Concluir configuracao
+            </button>
+          </div>
+        </article>
+
+        <aside class="setup-card">
+          <h2>O que sera criado</h2>
+          <ul class="setup-list">
+            <li><strong>database.sqlite</strong> com os dados principais do sistema</li>
+            <li><strong>uploads/</strong> para anexos de processos e documentos</li>
+            <li><strong>branding/</strong> para logos e personalizacoes locais</li>
+          </ul>
+
+          <div class="setup-note">
+            <span class="setup-note-title">Fluxo multiplataforma</span>
+            <p>
+              Essa etapa funciona da mesma forma no Windows, Linux e macOS, mantendo
+              a configuracao inicial consistente em qualquer instalacao.
+            </p>
+          </div>
+
+          <div class="setup-summary">
+            <span class="setup-summary-label">Sistema</span>
+            <strong>Sistema de Processos</strong>
+            <span class="setup-summary-label">Plataforma atual</span>
+            <strong id="platformLabel">-</strong>
+          </div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <script src="./setup-window.js"></script>
+</body>
+</html>

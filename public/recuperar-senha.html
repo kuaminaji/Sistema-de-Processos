@@ -1,0 +1,128 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperar Senha - Sistema de Processos</title>
+  <script src="/js/protocol-detector.js"></script>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="brand-showcase brand-showcase-compact">
+        <div class="brand-card">
+          <div class="brand-logo-shell">
+            <img src="/branding/company-logo.png" alt="EA Sistemas" class="brand-logo-image">
+          </div>
+          <div class="brand-card-copy">
+            <span class="brand-card-chip">Tecnologia</span>
+            <strong>EA Sistemas</strong>
+            <small>Identidade principal da plataforma.</small>
+          </div>
+        </div>
+        <div class="brand-card">
+          <div class="brand-logo-shell brand-logo-shell-contrast">
+            <img src="/branding/lawyer-logo.png" alt="Marca da advogada" class="brand-logo-image">
+          </div>
+          <div class="brand-card-copy">
+            <span class="brand-card-chip">Escritório</span>
+            <strong>Marca da advogada</strong>
+            <small>Espaço reservado para sua arte final.</small>
+          </div>
+        </div>
+      </div>
+      <div class="auth-logo">
+        <h1>Recuperar senha</h1>
+        <p>Solicite o token de recuperacao. Quando SMTP estiver configurado, ele sera enviado por email automaticamente.</p>
+      </div>
+
+      <div class="card mb-3">
+        <div class="card-body">
+          <form id="requestResetForm">
+            <div class="form-group">
+              <label class="form-label required" for="resetEmail">Email do usuário</label>
+              <input id="resetEmail" class="form-control" type="email" required>
+            </div>
+            <button class="btn btn-primary btn-block" type="submit">Solicitar recuperação</button>
+          </form>
+          <div id="generatedTokenBox" class="alert alert-info mt-3" style="display:none;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <form id="resetPasswordForm">
+  <div class="form-group">
+    <label class="form-label required" for="resetToken">Token</label>
+    <input id="resetToken" class="form-control" required>
+  </div>
+  <div class="form-group">
+    <label class="form-label required" for="newPassword">Nova senha</label>
+    <div class="input-with-action">
+      <input id="newPassword" class="form-control" type="password" minlength="6" required>
+      <button class="input-action-btn" type="button" onclick="togglePasswordVisibility('newPassword', this)">Mostrar</button>
+    </div>
+    <div class="form-text">Minimo de 6 caracteres. Pode conter apenas numeros.</div>
+  </div>
+  <div class="form-group">
+    <label class="form-label required" for="confirmPassword">Confirmar nova senha</label>
+    <div class="input-with-action">
+      <input id="confirmPassword" class="form-control" type="password" minlength="6" required>
+      <button class="input-action-btn" type="button" onclick="togglePasswordVisibility('confirmPassword', this)">Mostrar</button>
+    </div>
+  </div>
+  <button class="btn btn-primary btn-block" type="submit">Redefinir senha</button>
+</form>
+        </div>
+      </div>
+
+      <div class="auth-footer">
+        <a href="/login.html">Voltar ao login</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    document.getElementById('requestResetForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      try {
+        const response = await api('/api/auth/request-password-reset', 'POST', {
+          email: document.getElementById('resetEmail').value.trim()
+        });
+        const box = document.getElementById('generatedTokenBox');
+        box.style.display = 'block';
+        if (response.data?.email_enviado) {
+          box.innerHTML = `<strong>Email enviado com sucesso.</strong><br><span class="text-secondary">Verifique sua caixa de entrada. Expira em ${formatDateTime(response.data.expira_em)}</span>`;
+        } else if (response.data?.token) {
+          box.innerHTML = `<strong>Token gerado:</strong><br><code>${response.data.token}</code><br><span class="text-secondary">Expira em ${formatDateTime(response.data.expira_em)}</span>`;
+          document.getElementById('resetToken').value = response.data.token;
+        } else {
+          box.textContent = response.message;
+        }
+        showToast(response.message || 'Recuperação solicitada com sucesso', 'success');
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    });
+
+    document.getElementById('resetPasswordForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      try {
+        await api('/api/auth/reset-password', 'POST', {
+          token: document.getElementById('resetToken').value.trim(),
+          senhaNova: document.getElementById('newPassword').value,
+          confirmarSenha: document.getElementById('confirmPassword').value
+        });
+        showToast('Senha redefinida com sucesso', 'success');
+        setTimeout(() => window.location.href = '/login.html', 1200);
+      } catch (error) {
+        showToast(error.message, 'error');
+      }
+    });
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sistema de Gerenciamento de Processos Judiciais">
+    <title>Sistema de Processos - Início</title>
+    <script src="/js/protocol-detector.js"></script>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card landing-card">
+            <div class="landing-grid">
+                <div>
+                    <div class="brand-showcase brand-showcase-compact mb-3">
+                        <div class="brand-card">
+                            <div class="brand-logo-shell">
+                                <img src="/branding/company-logo.png" alt="EA Sistemas" class="brand-logo-image">
+                            </div>
+                            <div class="brand-card-copy">
+                                <span class="brand-card-chip">Tecnologia</span>
+                                <strong>EA Sistemas</strong>
+                                <small>Aplicativo institucional da operação jurídica.</small>
+                            </div>
+                        </div>
+                        <div class="brand-card">
+                            <div class="brand-logo-shell brand-logo-shell-contrast">
+                                <img src="/branding/lawyer-logo.png" alt="Marca da advogada" class="brand-logo-image">
+                            </div>
+                            <div class="brand-card-copy">
+                                <span class="brand-card-chip">Escritório</span>
+                                <strong>Marca da advogada</strong>
+                                <small>Reservada para a identidade final da usuária.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="auth-logo auth-logo-left">
+                        <h1>Sistema de Processos</h1>
+                        <p>Gerenciamento jurídico com mais clareza operacional, melhor consulta pública e acesso rápido às rotinas principais.</p>
+                    </div>
+
+                    <div id="loadingState" class="text-center" style="display: none;">
+                        <div class="loading-spinner" style="margin: 0 auto;"></div>
+                        <p class="text-secondary mt-2">Verificando autenticação...</p>
+                    </div>
+
+                    <div id="publicOptions">
+                        <div class="landing-panel">
+                            <span class="section-kicker">Acesso rápido</span>
+                            <h2 class="text-xl mb-2">Entre no painel ou abra a consulta pública</h2>
+                            <p class="text-secondary text-sm">Uma entrada mais intuitiva para equipe interna e para quem precisa consultar processos sem perder tempo.</p>
+                            <div class="landing-actions">
+                                <a href="/login.html" class="btn btn-primary">Acessar sistema</a>
+                                <a href="/consulta.html" class="btn btn-outline">Consulta pública</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="landing-panel">
+                    <h3 class="mb-2">Destaques</h3>
+                    <div class="consult-steps">
+                        <div class="consult-step">
+                            <strong>Consulta pública em evidência</strong>
+                            <div class="text-secondary">Busca por documento ou processo com visual mais claro.</div>
+                        </div>
+                        <div class="consult-step">
+                            <strong>Painel com leitura melhor</strong>
+                            <div class="text-secondary">Indicadores, prazos e auditoria organizados de forma executiva.</div>
+                        </div>
+                        <div class="consult-step">
+                            <strong>Cadastros mais intuitivos</strong>
+                            <div class="text-secondary">Formulários agrupados por contexto, não como uma lista longa de campos.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const loadingState = document.getElementById('loadingState');
+            const publicOptions = document.getElementById('publicOptions');
+
+            loadingState.style.display = 'block';
+            publicOptions.style.display = 'none';
+
+            try {
+                const user = await checkAuth();
+                if (user) {
+                    const protocol = 'http:';
+                    const host = window.location.host;
+                    const adminUrl = `${protocol}//${host}/admin.html`;
+                    window.location.href = adminUrl;
+                } else {
+                    loadingState.style.display = 'none';
+                    publicOptions.style.display = 'block';
+                }
+            } catch (error) {
+                loadingState.style.display = 'none';
+                publicOptions.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

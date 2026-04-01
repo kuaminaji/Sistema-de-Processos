@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-labelledby="title desc">
+  <title id="title">Marca da advogada em preparacao</title>
+  <desc id="desc">Placeholder profissional para futura logo da advogada usuaria do sistema.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f7fafc" />
+      <stop offset="100%" stop-color="#e6edf7" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#183a70" />
+      <stop offset="100%" stop-color="#215db5" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f4a000" />
+      <stop offset="100%" stop-color="#ffd048" />
+    </linearGradient>
+  </defs>
+  <rect width="640" height="640" rx="72" fill="url(#bg)" />
+  <rect x="84" y="84" width="472" height="472" rx="48" fill="white" stroke="#d7e0ea" stroke-width="8" />
+  <path d="M196 212c36-44 76-66 124-66 44 0 84 18 120 54l-38 38c-22-22-48-34-78-34-34 0-62 14-86 42z" fill="url(#gold)" />
+  <path d="M320 198c72 0 130 58 130 130s-58 130-130 130-130-58-130-130 58-130 130-130zm0 54c-42 0-76 34-76 76s34 76 76 76 76-34 76-76-34-76-76-76z" fill="url(#accent)" opacity="0.12" />
+  <path d="M246 438V252h52c37 0 62 7 78 22 15 14 23 34 23 58 0 23-8 42-23 57-16 15-41 23-78 23zm54-47h15c22 0 38-4 48-12 10-8 15-21 15-37 0-17-5-29-15-38-10-8-26-12-48-12h-15z" fill="url(#accent)" />
+  <path d="M188 484h264" stroke="#d7e0ea" stroke-width="10" stroke-linecap="round" />
+  <text x="320" y="523" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#183a70">MARCA DA ADVOGADA</text>
+  <text x="320" y="563" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#64748b">substitua este arquivo pela logo oficial</text>
+</svg>

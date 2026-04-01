@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo - Sistema de Processos</title>
+  <script src="/js/protocol-detector.js"></script>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header sidebar-header-brand">
+        <div class="sidebar-brand-stack">
+          <div class="sidebar-partner-badge">
+            <img src="/branding/lawyer-logo.png" alt="Marca da advogada" class="sidebar-partner-logo">
+          </div>
+        </div>
+        <button class="sidebar-toggle" type="button" onclick="toggleSidebar()">Menu</button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul>
+          <li><a href="#dashboard" data-section="dashboard" class="active"><span class="nav-icon">PA</span><span class="nav-copy"><strong>Painel</strong><small>Resumo executivo</small></span></a></li>
+          <li><a href="#processos" data-section="processos"><span class="nav-icon">PR</span><span class="nav-copy"><strong>Processos</strong><small>Carteira e prazos</small></span></a></li>
+          <li><a href="#clientes" data-section="clientes"><span class="nav-icon">CL</span><span class="nav-copy"><strong>Clientes</strong><small>PF e PJ</small></span></a></li>
+          <li><a href="#movimentacoes" data-section="movimentacoes"><span class="nav-icon">MV</span><span class="nav-copy"><strong>Movimentações</strong><small>Timeline dos casos</small></span></a></li>
+          <li><a href="#notificacoes" data-section="notificacoes"><span class="nav-icon">NT</span><span class="nav-copy"><strong>Notificações</strong><small>Alertas operacionais</small></span></a></li>
+          <li><a href="#usuarios" data-section="usuarios" data-permission="usuarios.manage"><span class="nav-icon">US</span><span class="nav-copy"><strong>Usuários</strong><small>Acessos e perfis</small></span></a></li>
+          <li><a href="#permissoes" data-section="permissoes" data-permission="usuarios.manage"><span class="nav-icon">PM</span><span class="nav-copy"><strong>Permissões</strong><small>Governança</small></span></a></li>
+          <li><a href="#auditoria" data-section="auditoria" data-permission="auditoria.view"><span class="nav-icon">AU</span><span class="nav-copy"><strong>Auditoria</strong><small>Uso por dia</small></span></a></li>
+          <li><a href="#configuracoes" data-section="configuracoes" data-permission="admin.backup"><span class="nav-icon">CF</span><span class="nav-copy"><strong>Configurações</strong><small>Backup e reset</small></span></a></li>
+        </ul>
+      </nav>
+      <div class="sidebar-company-badge">
+        <img src="/branding/company-logo.png" alt="Logo da empresa" class="sidebar-company-logo">
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="header">
+        <div class="header-left">
+          <button class="btn btn-ghost sidebar-toggle" type="button" onclick="toggleSidebar()">Menu</button>
+          <div class="header-title-group">
+            <span class="section-kicker">Painel administrativo</span>
+            <h1 class="header-title" id="pageTitle">Painel</h1>
+            <p class="header-subtitle" id="pageSubtitle">Visão geral da operação.</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <div class="header-chip-group">
+            <div class="header-chip">
+              <span class="header-chip-label">Data</span>
+              <strong id="headerDate">-</strong>
+            </div>
+            <div class="header-chip desktop-update-chip" id="desktopUpdateChip" style="display:none;"></div>
+          </div>
+          <div class="user-menu" onclick="toggleUserMenu()">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <div class="user-info">
+              <div class="user-name" id="userName">Carregando...</div>
+              <div class="user-role" id="userRole">-</div>
+            </div>
+          </div>
+          <button class="btn btn-danger btn-sm" type="button" onclick="logout()">Sair</button>
+          <div class="dropdown-menu" id="userMenuDropdown">
+            <a href="/trocar-senha.html">Trocar senha</a>
+            <a href="/setup-2fa.html">Configurar 2FA</a>
+            <a href="#" onclick="logout(); return false;" class="text-danger">Sair</a>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        <section id="dashboardSection" class="content-section"></section>
+        <section id="processosSection" class="content-section" style="display:none;"></section>
+        <section id="clientesSection" class="content-section" style="display:none;"></section>
+        <section id="movimentacoesSection" class="content-section" style="display:none;"></section>
+        <section id="notificacoesSection" class="content-section" style="display:none;"></section>
+        <section id="usuariosSection" class="content-section" style="display:none;"></section>
+        <section id="permissoesSection" class="content-section" style="display:none;"></section>
+        <section id="auditoriaSection" class="content-section" style="display:none;"></section>
+        <section id="configuracoesSection" class="content-section" style="display:none;"></section>
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

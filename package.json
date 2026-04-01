@@ -1,0 +1,153 @@
+{
+  "name": "sistema-de-processos-enterprise",
+  "version": "1.0.0",
+  "description": "Sistema de Gerenciamento de Processos Juridicos - Versao Enterprise",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "desktop": "electron .",
+    "dev": "node --watch src/server.js",
+    "init-db": "node src/database/init.js",
+    "fix-admin": "node fix-admin-password.js",
+    "test": "cross-env NODE_ENV=test jest --runInBand --testTimeout=10000",
+    "test:watch": "cross-env NODE_ENV=test jest --runInBand --watch",
+    "test:coverage": "cross-env NODE_ENV=test jest --runInBand --coverage",
+    "postinstall": "electron-builder install-app-deps",
+    "dist:win": "electron-builder --win nsis",
+    "dist:portable": "electron-builder --win portable",
+    "dist:linux": "electron-builder --linux deb rpm",
+    "dist:mac": "electron-builder --mac dmg",
+    "dist:all": "electron-builder --win nsis --linux deb rpm --mac dmg"
+  },
+  "keywords": [
+    "juridico",
+    "processos",
+    "gestao",
+    "enterprise"
+  ],
+  "author": "EA Sistemas",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "csurf": "^1.11.0",
+    "dotenv": "^16.6.1",
+    "electron-updater": "^6.8.3",
+    "exceljs": "^4.4.0",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "express-session": "^1.17.3",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "multer": "^2.1.1",
+    "nodemailer": "^6.10.1",
+    "otplib": "^12.0.1",
+    "pdfkit": "^0.14.0",
+    "qrcode": "^1.5.3",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "electron": "^41.1.0",
+    "electron-builder": "^26.8.1",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "build": {
+    "appId": "com.coump.sistemaprocessos",
+    "productName": "Sistema de Processos",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "asar": true,
+    "compression": "maximum",
+    "generateUpdatesFilesForAllChannels": true,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://updates.example.com/sistema-processos"
+      }
+    ],
+    "files": [
+      "electron/**/*",
+      "public/**/*",
+      "src/**/*",
+      "package.json",
+      ".env.example",
+      "fix-admin-password.js"
+    ],
+    "extraMetadata": {
+      "main": "electron/main.js"
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "linux": {
+      "category": "Office",
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "rpm",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "category": "public.app-category.business",
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "shortcutName": "Sistema de Processos",
+      "installerLanguages": [
+        "pt_BR"
+      ]
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}.${ext}"
+    }
+  }
+}
