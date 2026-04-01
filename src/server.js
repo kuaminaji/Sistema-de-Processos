@@ -79,7 +79,17 @@ app.use(async (req, res, next) => {
 const csrfProtection = csurf({ cookie: false });
 
 app.get('/api/csrf-token', csrfProtection, (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
+  const csrfToken = req.csrfToken();
+  req.session.save((error) => {
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        message: 'Nao foi possivel preparar o token CSRF'
+      });
+    }
+
+    return res.json({ csrfToken });
+  });
 });
 
 const limiter = rateLimit({

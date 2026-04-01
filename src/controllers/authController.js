@@ -104,20 +104,29 @@ async function login(req, res) {
     await auditLog(req, 'login_sucesso', { email: identificador });
     await db.close();
 
-    return res.json({
-      success: true,
-      message: 'Login realizado com sucesso',
-      data: {
-        usuario: {
-          id: usuario.id,
-          nome: usuario.nome,
-          email: usuario.email,
-          perfil: usuario.perfil
-        },
-        permissoes: req.session.permissoes,
-        forcar_troca_senha: usuario.forcar_troca_senha === 1,
-        senha_expira_em: usuario.senha_expira_em
+    return req.session.save((sessionError) => {
+      if (sessionError) {
+        return res.status(500).json({
+          success: false,
+          message: 'Erro ao finalizar a sessao de login'
+        });
       }
+
+      return res.json({
+        success: true,
+        message: 'Login realizado com sucesso',
+        data: {
+          usuario: {
+            id: usuario.id,
+            nome: usuario.nome,
+            email: usuario.email,
+            perfil: usuario.perfil
+          },
+          permissoes: req.session.permissoes,
+          forcar_troca_senha: usuario.forcar_troca_senha === 1,
+          senha_expira_em: usuario.senha_expira_em
+        }
+      });
     });
   } catch (error) {
     console.error('Erro no login:', error);
