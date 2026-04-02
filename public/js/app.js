@@ -166,6 +166,29 @@ function closeModal(targetOverlay = null) {
   overlay?.remove();
 }
 
+function applyDisplayProfile() {
+  const root = document.documentElement;
+  const body = document.body;
+  if (!root || !body) return;
+
+  const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform) || navigator.userAgent.includes('Mac OS X');
+  const isRetina = window.devicePixelRatio >= 2;
+  const compactWidth = window.innerWidth <= 1440;
+  const compactHeight = window.innerHeight <= 900;
+  const isMacbookAir13 = isMac && isRetina && compactWidth && compactHeight;
+
+  [root, body].forEach((node) => {
+    node.classList.toggle('platform-mac', isMac);
+    node.classList.toggle('retina-display', isRetina);
+    node.classList.toggle('compact-workspace', compactWidth || compactHeight);
+    node.classList.toggle('macbook-air-13', isMacbookAir13);
+  });
+}
+
+function scheduleDisplayProfileRefresh() {
+  window.requestAnimationFrame(() => applyDisplayProfile());
+}
+
 function showModal(title, content, footer = '', options = {}) {
   if (!options?.preservePrevious) {
     closeModal();
@@ -448,6 +471,9 @@ document.addEventListener('keydown', (event) => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
+  applyDisplayProfile();
+  window.addEventListener('resize', scheduleDisplayProfileRefresh, { passive: true });
+
   document.body.addEventListener('input', (event) => {
     const input = event.target;
     if (input.matches('[data-mask="cpf"]')) input.value = formatCPF(input.value);

@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const { Database } = require('../database/init');
-const { sanitizarInput, validarSenhaForte, validarEmail } = require('../middleware/validators');
+const { sanitizarInput, validarSenhaForte, validarIdentificadorAcesso } = require('../middleware/validators');
 const { auditLog } = require('../middleware/audit');
 
 const PERFIS_VALIDOS = ['admin', 'advogado', 'secretaria', 'gestor'];
@@ -89,8 +89,8 @@ async function create(req, res) {
     if (!nome || !email || !senha || !perfil) {
       return res.status(400).json({ success: false, message: 'Campos obrigat?rios: nome, email, senha, perfil' });
     }
-    if (!validarEmail(email)) {
-      return res.status(400).json({ success: false, message: 'Email inv?lido' });
+    if (!validarIdentificadorAcesso(email)) {
+      return res.status(400).json({ success: false, message: 'Identificador de acesso invalido' });
     }
     if (!PERFIS_VALIDOS.includes(perfil)) {
       return res.status(400).json({ success: false, message: `Perfil inv?lido. Valores permitidos: ${PERFIS_VALIDOS.join(', ')}` });
@@ -173,9 +173,9 @@ async function update(req, res) {
     }
 
     if (email !== undefined) {
-      if (!validarEmail(email)) {
+      if (!validarIdentificadorAcesso(email)) {
         await db.close();
-        return res.status(400).json({ success: false, message: 'Email inv?lido' });
+        return res.status(400).json({ success: false, message: 'Identificador de acesso invalido' });
       }
       const emailExiste = await db.get('SELECT id FROM usuarios WHERE email = ?AND id != ?', [sanitizarInput(email), parseInt(req.params.id, 10)]);
       if (emailExiste) {

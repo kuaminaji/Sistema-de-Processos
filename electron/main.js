@@ -60,11 +60,13 @@ async function startLocalServer(config) {
 }
 
 function createAppWindow(targetUrl = `${appBaseUrl}/login.html`) {
+  const isMac = process.platform === 'darwin';
+
   const window = new BrowserWindow({
-    width: 1440,
-    height: 920,
-    minWidth: 1180,
-    minHeight: 760,
+    width: isMac ? 1366 : 1440,
+    height: isMac ? 840 : 920,
+    minWidth: isMac ? 1100 : 1180,
+    minHeight: isMac ? 700 : 760,
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#f3f6fb',

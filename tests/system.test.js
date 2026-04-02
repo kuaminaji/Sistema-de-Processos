@@ -202,4 +202,30 @@ describe('Core system flows', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.data.email).toBe('usuario.teste.01@example.com');
   });
+
+  it('updates admin name while keeping local login identifier', async () => {
+    const agent = await loginAgent();
+    const db = new Database();
+    await db.connect();
+    const admin = await db.get('SELECT id, nome, email FROM usuarios WHERE email = ?', [TEST_ADMIN_EMAIL]);
+    await db.close();
+
+    const csrfToken = await getCsrfToken(agent);
+    const updatedName = 'Administrador Principal';
+    const response = await agent
+      .put(`/api/usuarios/${admin.id}`)
+      .set('Accept', 'application/json')
+      .set('x-csrf-token', csrfToken)
+      .send({
+        nome: updatedName,
+        email: admin.email,
+        perfil: 'admin',
+        ativo: true
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.nome).toBe(updatedName);
+    expect(response.body.data.email).toBe(TEST_ADMIN_EMAIL);
+  });
 });

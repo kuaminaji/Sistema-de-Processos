@@ -3,6 +3,7 @@ const { body, param, query } = require('express-validator');
 const usuariosController = require('../controllers/usuariosController');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 const { auditMiddleware } = require('../middleware/audit');
+const { validarIdentificadorAcesso } = require('../middleware/validators');
 
 const router = express.Router();
 const PERFIS_VALIDOS = ['admin', 'advogado', 'secretaria', 'gestor'];
@@ -29,7 +30,12 @@ router.get('/:id', requireAuth, requireAdmin, [param('id').isInt({ min: 1 })], h
 
 router.post('/', requireAuth, requireAdmin, [
   body('nome').trim().notEmpty().isLength({ max: 255 }),
-  body('email').trim().notEmpty().isEmail().normalizeEmail(),
+  body('email').trim().notEmpty().isLength({ max: 255 }).custom((value) => {
+    if (!validarIdentificadorAcesso(value)) {
+      throw new Error('Identificador de acesso invalido');
+    }
+    return true;
+  }),
   body('senha').notEmpty().isLength({ min: 6 }),
   body('perfil').notEmpty().isIn(PERFIS_VALIDOS),
   body('ativo').optional().isBoolean()
@@ -38,7 +44,12 @@ router.post('/', requireAuth, requireAdmin, [
 router.put('/:id', requireAuth, requireAdmin, [
   param('id').isInt({ min: 1 }),
   body('nome').optional().trim().notEmpty().isLength({ max: 255 }),
-  body('email').optional().trim().notEmpty().isEmail().normalizeEmail(),
+  body('email').optional().trim().notEmpty().isLength({ max: 255 }).custom((value) => {
+    if (!validarIdentificadorAcesso(value)) {
+      throw new Error('Identificador de acesso invalido');
+    }
+    return true;
+  }),
   body('perfil').optional().isIn(PERFIS_VALIDOS),
   body('ativo').optional().isBoolean()
 ], handleValidationErrors, auditMiddleware('atualizar_usuario', 'usuarios'), usuariosController.update);

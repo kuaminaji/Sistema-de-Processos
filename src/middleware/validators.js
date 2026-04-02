@@ -151,6 +151,21 @@ function validarEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || ''));
 }
 
+function validarIdentificadorAcesso(emailOuUsuario) {
+  const valor = String(emailOuUsuario || '').trim();
+  if (!valor) return false;
+
+  if (validarEmail(valor)) {
+    return true;
+  }
+
+  if (/^[^\s@]+@[A-Za-z0-9_-]+$/.test(valor)) {
+    return true;
+  }
+
+  return /^[A-Za-z0-9._-]{3,255}$/.test(valor);
+}
+
 function validarTelefone(telefone) {
   const telefoneLimpo = normalizarDocumento(telefone);
   return telefoneLimpo.length >= 10 && telefoneLimpo.length <= 13;
@@ -181,6 +196,7 @@ module.exports = {
   validarSenhaForte,
   sanitizarInput,
   validarEmail,
+  validarIdentificadorAcesso,
   validarTelefone,
   formatarTelefoneWhatsApp
 };
